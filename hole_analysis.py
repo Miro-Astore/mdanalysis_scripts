@@ -21,11 +21,11 @@ u=mda.Universe(sys.argv[-1])
 #u.atoms.align_principal_axis(2,[0,0,1])
 #u.atoms.align_principal_axis(1,[0,1,0])
 
-pore_entry_sel=u.select_atoms("resid 367 182 187 249 978  and name CA")
-pore_start=pore_entry_sel.center_of_mass()
-print (pore_start)
-orr=u.atoms.center_of_mass()
-print (orr)
+#pore_entry_sel=u.select_atoms("resid 187 249 and name CA")
+#pore_start=pore_entry_sel.center_of_mass()
+#print (pore_start)
+#orr=u.atoms.center_of_mass()
+#print (orr)
 
 atoms = u.select_atoms('all')
 #with mda.Writer('out.pdb',atoms.n_atoms) as W:
@@ -35,13 +35,6 @@ atoms = u.select_atoms('all')
 # selecting pore entry residues
 
 
-pore_entry_sel=u.select_atoms("resid 182 187 249 978 and name CA")
-#pore_entry_sel=u.select_atoms("resid 334 336 352 and name CA")
-
-pore_start=pore_entry_sel.center_of_mass()
-print (pore_start)
-orr=u.atoms.center_of_mass()
-print (orr)
 
 ##demeaning 
 #for ts in u.trajectory:
@@ -52,7 +45,7 @@ print (orr)
 #rotating
 
 #u2=mda.Universe('.pdb')
-pore_entry_sel=u.select_atoms("resid  367 186 187 249 978 and name CA")
+pore_entry_sel=u.select_atoms("resid  185 352 353 249 and name CA")
 #pore_entry_sel=u.select_atoms("resid 334 336 352 and name CA")
 
 pore_start=pore_entry_sel.center_of_mass()
