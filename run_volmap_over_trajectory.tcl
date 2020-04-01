@@ -3,8 +3,8 @@ namespace import Orient::orient
 
 mol new ./6msm_prot.pdb
 
-mol new 
-mol addfile  waitfor all
+mol new ./_scratch_r16_ma2374_gmx_cftr_2nd_round_I37R_1.psf
+mol addfile ./trajs/_scratch_r16_ma2374_gmx_cftr_2nd_round_310K_I37R_3_sum.xtc waitfor all
 
 
 set sel [atomselect top "water or ions"]
@@ -29,7 +29,7 @@ set I [draw principalaxes $first_frame_sel]
 
 set fit [atomselect top $selText]
 #ref is 6msm
-set ref [atomselect  $selText ]
+set ref [atomselect 0 $selText ]
 
 set all [atomselect top all]
 set size [measure minmax $ref]

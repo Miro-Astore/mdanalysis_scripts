@@ -1,3 +1,9 @@
+#####
+#usage: python mdanalysis_scripts/hole_analysis.py PDB.pdb 
+# will output a file with the name PDB.sph 
+# TODO add processing to output .sph file 
+#####
+
 import MDAnalysis as mda
 import sys
 import os 
@@ -45,7 +51,7 @@ atoms = u.select_atoms('all')
 #rotating
 
 #u2=mda.Universe('.pdb')
-pore_entry_sel=u.select_atoms("resid  185 352 353 249 and name CA")
+pore_entry_sel=u.select_atoms("resid  185 249 and name CA")
 #pore_entry_sel=u.select_atoms("resid 334 336 352 and name CA")
 
 pore_start=pore_entry_sel.center_of_mass()

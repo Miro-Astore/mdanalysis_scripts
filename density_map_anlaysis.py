@@ -3,6 +3,12 @@ import numpy as np
 import MDAnalysis as mda
 import matplotlib.pyplot as plt
 
+SPH='./wt_last.sph'
+DX='./wt_test.dx'
+SAVE='./WT_data.npy'
+
+num_sample_points=10
+
 def sample_cylinder_coords(cylinder_center,cylinder_radius, sample_points,rad_scale=0.9): 
     angles=np.array(2*np.pi/(sample_points-1) * np.arange(sample_points-1))
     points = np.zeros([sample_points,3])
@@ -23,19 +29,19 @@ def sample_cylinder_coords(cylinder_center,cylinder_radius, sample_points,rad_sc
 #add up slices
 #make sure you can graph density over z so you can look at it.
 
-u=mda.Universe('../I37R_last.sph',topology_format='PDB')
+u=mda.Universe(SPH,topology_format='PDB')
 
 interp_values=np.zeros(len(u.atoms))
 cylinder_height=np.abs(u.atoms.positions[0][2]-u.atoms.positions[1][2])
 spacing=0.2
 stride=np.int(np.round(spacing/cylinder_height))
+stride=1
 cylinder_height=stride*cylinder_height
 stride_pos=u.atoms.positions[0:-1:stride]
 stride_rad=u.atoms.tempfactors[0:-1:stride]
 big_sample=np.zeros(len(stride_pos))
 
-x=de.Density('../I37R_test_doubt.dx')
-num_sample_points=10
+x=de.Density(DX)
 y=(x.centers())
 
 for i in range(len(u.atoms)):
@@ -70,7 +76,7 @@ sort_arr=np.argsort(stride_pos[:,2])
 stride_z=stride_pos[:,2][np.argsort(stride_pos[:,2])]
 big_sample=big_sample[sort_arr]
 paired_vol=np.array([stride_z,big_sample])
-np.save('../I37R_data.npy',paired_vol)
+np.save(SAVE,paired_vol)
 #
 #plt.plot(z,interp_values,label='linear')
 #plt.legend()
