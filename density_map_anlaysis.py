@@ -3,9 +3,9 @@ import numpy as np
 import MDAnalysis as mda
 import matplotlib.pyplot as plt
 
-SPH='./wt_last.sph'
-DX='./wt_test.dx'
-SAVE='./WT_data.npy'
+SPH='./R352Q_3.sph'
+DX='./R352Q_3.dx'
+SAVE='./R352Q_3.npy'
 
 num_sample_points=10
 
