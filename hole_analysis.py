@@ -51,10 +51,14 @@ atoms = u.select_atoms('all')
 #rotating
 
 #u2=mda.Universe('.pdb')
-pore_entry_sel=u.select_atoms("resid  249 366 and name CA")
+#annoying wt sel
+#pore_entry_sel=u.select_atoms("resid  186 190 363 241 and name CA")
+pore_entry_sel=u.select_atoms("resid  186 360 249 and name CA")
 #pore_entry_sel=u.select_atoms("resid 334 336 352 and name CA")
 
-pore_start=pore_entry_sel.center_of_mass()
+pore_start=pore_entry_sel.center_of_mass() 
+#pore_start=  [160.598007, 158.057007,  163.794006]
+
 print (pore_start)
 sphpdb=str(sys.argv[-1])[:-4] + '.sph'
 
