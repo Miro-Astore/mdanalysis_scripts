@@ -6,7 +6,7 @@ os.chdir('..')
 
 #label=['I37R_310K','I37R_350K','R352Q','WT']
 label=['I37R','R352Q','WT']
-label1=['I37R_310K_1','I37R_310K_2','I37R_310K_3','I37R_350K']
+label1=['I37R_310K_1','I37R_310K_2','I37R_310K_3']
 label2=['R352Q_310K_1','R352Q_310K_2','R352Q_310K_3']
 label3=['WT_310K_1','WT_310K_2','WT_310K_3']
 
@@ -31,4 +31,5 @@ for i in range(len(label)):
 
 plt.ylim([0,max_rmsd*1.1])
 plt.legend()
-plt.savefig('ensemble_rmsds.pdf')
+plt.show()
+#plt.savefig('ensemble_rmsds.pdf')
