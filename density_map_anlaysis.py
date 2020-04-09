@@ -71,6 +71,8 @@ z=u.atoms.positions[:,2]
 sort_arr=np.argsort(z)
 z=z[sort_arr]
 interp_values=interp_values[sort_arr]
+plt.plot(z,interp_values)
+plt.show()
 
 sort_arr=np.argsort(stride_pos[:,2])
 stride_z=stride_pos[:,2][np.argsort(stride_pos[:,2])]
