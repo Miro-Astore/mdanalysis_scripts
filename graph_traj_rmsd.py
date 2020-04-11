@@ -2,7 +2,7 @@ import matplotlib.pyplot as plt
 import os 
 import numpy as np
 
-os.chdir('..')
+#os.chdir('..')
 
 #label=['I37R_310K','I37R_350K','R352Q','WT']
 label=['I37R','R352Q','WT']
