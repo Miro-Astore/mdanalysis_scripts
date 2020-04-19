@@ -7,6 +7,8 @@ import matplotlib.gridspec as gridspec
 
 system_list=['_scratch_r16_ma2374_gmx_cftr_2nd_round_310K_I37R_3_res_rmsd.dat','_scratch_r16_ma2374_gmx_cftr_2nd_round_310K_wt_1_res_rmsd.dat']
 
+colors=['orange','tab:blue']
+
 def chunkIt(seq, num):
     avg = len(seq) / float(num)
     out = []
@@ -26,17 +28,27 @@ sys_count=1
 gridspec.GridSpec(2,1)
 plt.subplot2grid((2,1),(0,0),colspan=1,rowspan=1)
 
+count=0
 for i in system_list:
     sys_name=i.split('_')[-4].upper()
     print (sys_name)
     data = np.loadtxt(str(i))
-    x = data[:,1]*0.001
-    y = data[:,3]
-    plt.plot(x,y,label=sys_name)
+    data=[row for row in data if row[1] >= 800000]
+    #data=data[data[:,1]>=800000,:]
+    data=np.array(data)
 
-plt.title('RMSD of the lasoo domain in the wild type and the I37R mutant')
-plt.xlabel('time (ns)')
-plt.ylabel('lasoo domain RMSD ($\AA$)')
+
+    x = np.array(data[:,1])*0.001
+    y = data[:,3]
+    plt.plot(x[::2],y[::2],label=sys_name,color=colors[count])
+    count=count+1
+
+plt.title('RMSD of the lasoo domain in the wild type and the I37R mutant (residues 1 to 44) ',fontsize=18)
+plt.xlabel('time (ns)',fontsize=16)
+plt.ylabel('lasoo domain RMSD ($\AA$)',fontsize=16)
+plt.xticks(fontsize=14)
+plt.yticks(fontsize=14)
+plt.ylim([0,5.5])
 plt.legend()
 
 color_vec=['blue']*70
@@ -47,12 +59,18 @@ for i in system_list:
     sys_name=i.split('_')[-4].upper()
     print (sys_name)
     data = np.loadtxt(str(i))
+    data=[row for row in data if row[1] >= 800000]
+    data=np.array(data)
     resnum=len(data[0,3:-1])
     x = data[:,1]*0.001
     y = data[:,3]
     resnum=len(data[0,3:-1])
 
     data = np.loadtxt(str(i))
+    data=[row for row in data if row[1] >= 800000]
+    data=np.array(data)
+
+
     resnum=len(data[0,3:-1])
     blocks=chunkIt(np.array(data[:,0]),numblocks)
     blocks=np.array(blocks).astype(int)
@@ -60,20 +78,22 @@ for i in system_list:
     width = 0.45
     inds = np.array(range(1,len(data[0,3:-1])+1))
 
-    for j in range(numblocks):
-        block=blocks[j]
-        resrmsd=np.zeros(resnum)
-        for k in range(resnum):
-            resrmsd[k]=np.mean(data[block,4+k])
-        #plt.bar(inds+j*width,resrmsd,width,color=color_vec)
-        res_results[row_num,:]=resrmsd
-        #plt.ylim([0,6])
+#    for j in range(numblocks):
+    block=blocks[-1]
+    resrmsd=np.zeros(resnum)
+    for k in range(resnum):
+        resrmsd[k]=np.mean(data[:,4+k])
+    #plt.bar(inds+j*width,resrmsd,width,color=color_vec)
+    res_results[row_num,:]=resrmsd
+    #plt.ylim([0,6])
         
 #    plt.ylabel('Residue specific RMSDs $(\AA)$')
 #    plt.xlabel('residue number')
 
     print (str(i))
     data = np.loadtxt(str(i))
+    rows=(data[:,1]>=800000)
+    data=data[rows,:]
     resnum=len(data[0,3:-1])
     x = data[:,1]*0.001
     y = data[:,3]
@@ -82,16 +102,19 @@ for i in system_list:
 
 plt.subplot2grid((2,1),(1,0),colspan=1,rowspan=1)
 separation=0.1
-plt.bar(np.array([37])-width*0.49,1.05*np.amax(res_results),width,color='yellow')
-plt.bar(np.array([37])+width*0.49,1.05*np.amax(res_results),width,color='yellow')
-plt.bar(inds-width*0.5,res_results[0,:],width,)
-plt.bar(inds+width*0.5,res_results[1,:],width,)
-plt.xlim([0,70])
+plt.bar(np.array([37])-width*0.50,1.05*np.amax(res_results),width,color='yellow')
+plt.bar(np.array([37])+width*0.50,1.05*np.amax(res_results),width,color='yellow')
+plt.bar(inds-width*0.5,res_results[0,:],width,color='orange',label='I37R')
+plt.bar(inds+width*0.5,res_results[1,:],width,color='tab:blue',label='WT')
+plt.xlim([0,70+0.49])
 plt.ylim([0,1.05*np.amax(res_results)])
-plt.title('Residue Specific Lasoo Domain RMSDs ')
-plt.xlabel('residue number')
-plt.ylabel('CA RMSD ($\AA$)')
+plt.title('Residue Specific Lasoo Domain RMSDs (beyond 800ns)',fontsize=18)
+plt.xlabel('residue number',fontsize=14)
+plt.ylabel('CA RMSD ($\AA$)',fontsize=14)
+plt.xticks(fontsize=14)
+plt.yticks(fontsize=14)
+plt.legend()
 
 plt.tight_layout()
-plt.savefig('fig.pdf')
+plt.savefig('res_rmsd.pdf')
 plt.show()

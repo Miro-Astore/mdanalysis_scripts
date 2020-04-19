@@ -21,8 +21,8 @@ gridspec.GridSpec(2,1)
 plt.subplot2grid((2,1),(0,0),colspan=1,rowspan=1)
 
 labels=['5','6','9']
-data1 = np.loadtxt('_scratch_r16_ma2374_gmx_cftr_2nd_round_310K_wt_2_sum_tms_rmsd.dat')
-data2 = np.loadtxt('_scratch_r16_ma2374_gmx_cftr_2nd_round_310K_wt_3_sum_tms_rmsd.dat')
+data1 = np.loadtxt('_scratch_r16_ma2374_gmx_cftr_2nd_round_310K_wt_3_sum_tms_rmsd.dat')
+data2 = np.loadtxt('_scratch_r16_ma2374_gmx_cftr_2nd_round_310K_R352Q_1_sum_tms_rmsd.dat')
 num_cols=len(data1[0,3:-1])
 print(num_cols)
 
@@ -38,8 +38,9 @@ for i in range(num_cols+1):
     y = data2[:,3+i]
     print(3+i)
     plt.plot(x,y,label=labels[i])
+    plt.title('R352Q')
 
-plt.title('TM domains')
+#plt.title('TM domains')
 plt.xlabel('time (ns)')
 plt.ylabel('RMSD $(\AA)$')
 plt.legend()
