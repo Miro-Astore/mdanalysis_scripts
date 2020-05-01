@@ -50,10 +50,10 @@ else:
            i=i+1
     elif (res_set=={'ARG','ASP'}):
         #since we dont know which selection was passed as the argenine we can just pair up atoms arbitrarily so long as the logic makes sense.
-        in_sel1=sel1.select_atoms('name OE1 or name NH1') 
-        in_sel2=sel2.select_atoms('name OE1 or name NH1') 
-        in_sel3=sel1.select_atoms('name OE2 or name NH2') 
-        in_sel4=sel2.select_atoms('name OE2 or name NH2') 
+        in_sel1=sel1.select_atoms('name OD1 or name NH1') 
+        in_sel2=sel2.select_atoms('name OD1 or name NH1') 
+        in_sel3=sel1.select_atoms('name OD2 or name NH2') 
+        in_sel4=sel2.select_atoms('name OD2 or name NH2') 
         for ts in u.trajectory:
            dist1=dist(in_sel1,in_sel2) 
            dist2=dist(in_sel1,in_sel4) 
@@ -62,6 +62,14 @@ else:
            dist_arr[i] =  np.amin ([dist1[-1],dist2[-1],dist3[-1],dist4[-1]])
            i=i+1
     elif (res_set=={'LYS','GLU'}):
+        #since we dont know which selection was passed as the argenine we can just pair up atoms arbitrarily so long as the logic makes sense.
+        in_sel1=sel1.select_atoms('name OE1 or name NZ ') 
+        in_sel2=sel2.select_atoms('name OE2 or name NZ ') 
+        for ts in u.trajectory:
+           dist1=dist(in_sel1,in_sel2) 
+           dist2=dist(in_sel1,in_sel2) 
+           dist_arr[i] =  np.amin ([dist1[-1],dist2[-1],dist3[-1],dist4[-1]])
+           i=i+1
         pass
     elif (res_set=={'LYS','ASP'}):
         pass
