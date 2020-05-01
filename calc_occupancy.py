@@ -49,7 +49,7 @@ def track_occ(frame_arr):
         
 if __name__ == '__main__':
     #res_list = [95, 134]
-    res_list = [95, 134, 153, 190, 248, 251, 254, 303, 334, 335, 347, 352, 968, 975, 978, 1030, 1041, 1048, 1097, 1158, 1162, 1165]
+    res_list = np.array([95, 134, 153, 190, 248, 251, 254, 303, 334, 335, 347, 352, 968, 975, 978, 1030, 1041, 1048, 1097, 1158, 1162, 1165])
     num_res=len(res_list)
 
     TOP=str(sys.argv[1])
@@ -57,6 +57,7 @@ if __name__ == '__main__':
     out_name=str(sys.argv[3])
     #TOP='../_scratch_r16_ma2374_gmx_cftr_2nd_round_310K_wt_1.psf'
     #TRAJ='../test.xtc'
+    #out_name=str('outname')
     n_cores=multiprocessing.cpu_count()
     n_cores=4
 
@@ -73,7 +74,11 @@ if __name__ == '__main__':
         x = (p.map(track_occ,frame_inds))
     res_occ=x
     res_occ=np.sum(res_occ,axis=0)
-    res_occ=[res_occ,num_frames]
+    res_occ=np.append(res_occ,num_frames)
+    res_list=np.append(res_list,len(res_list))
+    res_occ=np.array([res_list,res_occ])
+    #res_occ=np.vstack(res_occ)
+
     print (res_occ)
     np.save(out_name,res_occ)
 
