@@ -1,5 +1,7 @@
 import MDAnalysis as mda
 import pprint
+import sys
+import os 
 from multiprocessing import Pool
 import multiprocessing
 import numpy as np
