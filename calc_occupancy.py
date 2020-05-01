@@ -50,10 +50,11 @@ if __name__ == '__main__':
     res_list = [95, 134, 153, 190, 248, 251, 254, 303, 334, 335, 347, 352, 968, 975, 978, 1030, 1041, 1048, 1097, 1158, 1162, 1165]
     num_res=len(res_list)
 
-    #TOP=str(sys.argv[1])
-    #TRAJ=str(sys.argv[2])
-    TOP='../_scratch_r16_ma2374_gmx_cftr_2nd_round_310K_wt_1.psf'
-    TRAJ='../test.xtc'
+    TOP=str(sys.argv[1])
+    TRAJ=str(sys.argv[2])
+    out_name=str(sys.argv[3])
+    #TOP='../_scratch_r16_ma2374_gmx_cftr_2nd_round_310K_wt_1.psf'
+    #TRAJ='../test.xtc'
     n_cores=multiprocessing.cpu_count()
     n_cores=4
 
