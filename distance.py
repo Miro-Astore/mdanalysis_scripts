@@ -72,16 +72,22 @@ else:
     elif (res_set=={'ARG','ASP'}):
         print("using ARG ASP salt bridge")
         #since we dont know which selection was passed as the argenine we can just pair up atoms arbitrarily so long as the logic makes sense.
-        in_sel1=sel1.select_atoms('name OD1 or name NH1') 
-        in_sel2=sel2.select_atoms('name OD1 or name NH1') 
-        in_sel3=sel1.select_atoms('name OD2 or name NH2') 
-        in_sel4=sel2.select_atoms('name OD2 or name NH2') 
+        whole_sel_text=sel1txt + ' or ' + sel2txt
+        whole_sel=u.select_atoms(whole_sel_text)
+
+        in_sel1=whole_sel.select_atoms('name OD1') 
+        in_sel2=whole_sel.select_atoms('name OD2') 
+        in_sel3=whole_sel.select_atoms('name NE') 
+        in_sel4=whole_sel.select_atoms('name NH1') 
+        in_sel5=whole_sel.select_atoms('name NH2') 
         for ts in u.trajectory:
-           dist1=dist(in_sel1,in_sel2) 
+           dist1=dist(in_sel1,in_sel3) 
            dist2=dist(in_sel1,in_sel4) 
-           dist3=dist(in_sel3,in_sel2) 
-           dist4=dist(in_sel3,in_sel4) 
-           dist_arr[i][1] =  np.amin ([dist1[-1],dist2[-1],dist3[-1],dist4[-1]])
+           dist3=dist(in_sel1,in_sel5) 
+           dist4=dist(in_sel2,in_sel3) 
+           dist5=dist(in_sel2,in_sel4) 
+           dist6=dist(in_sel2,in_sel5) 
+           dist_arr[i][1] =  np.amin ([dist1[-1],dist2[-1],dist3[-1],dist4[-1],dist5[-1],dist6[-1]])
            dist_arr[i][0] =  ts.time*0.001
            i=i+1
     elif (res_set=={'LYS','GLU'}):
