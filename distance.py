@@ -24,19 +24,27 @@ CAs2=sel2.select_atoms('name CA and protein')
 res_set={CAs1.resnames[0],CAs2.resnames[0]}
 print(res_set)
 
-dist_arr=np.zeros(u.trajectory.n_frames)
+dist_arr=np.zeros([u.trajectory.n_frames,2])
 
 i=0
 
 #if there is more than 1 residue in each selection do distances as normal.
 if ((CAs1.n_atoms==CAs2.n_atoms==1))==False and (sel1.n_atoms>1) and (sel2.n_atoms>1):
-    pass 
+    print("doing normal distance measurements")
+    for ts in u.trajectory:
+       dist1=dist(sel1,sel2) 
+       dist_arr[i][1] =  dist1
+       dist_arr[i][0] =  ts.time*0.001
+       i=i+1
 #else its single residue distances and we are going to want to do fancy things.
 #want to check N-O distances for salt bridges. Should probably add one for lysine too .
 else:
     #names based on charmm might need to change
     if (res_set=={'ARG','GLU'}):
+        print("using ARG GLU salt bridge")
         #since we dont know which selection was passed as the argenine we can just pair up atoms arbitrarily so long as the logic makes sense.
+        #trying to do things efficienctly so we are going to combine the two selections, since we have already checked there is only one res in each selection and we can do funky things that would lose generality in other cases. 
+
         in_sel1=sel1.select_atoms('name OE1 or name NH1') 
         in_sel2=sel2.select_atoms('name OE1 or name NH1') 
         in_sel3=sel1.select_atoms('name OE2 or name NH2') 
@@ -46,9 +54,11 @@ else:
            dist2=dist(in_sel1,in_sel4) 
            dist3=dist(in_sel3,in_sel2) 
            dist4=dist(in_sel3,in_sel4) 
-           dist_arr[i] =  np.amin ([dist1[-1],dist2[-1],dist3[-1],dist4[-1]])
+           dist_arr[i][1] =  np.amin ([dist1[-1],dist2[-1],dist3[-1],dist4[-1]])
+           dist_arr[i][0] =  ts.time*0.001
            i=i+1
     elif (res_set=={'ARG','ASP'}):
+        print("using ARG ASP salt bridge")
         #since we dont know which selection was passed as the argenine we can just pair up atoms arbitrarily so long as the logic makes sense.
         in_sel1=sel1.select_atoms('name OD1 or name NH1') 
         in_sel2=sel2.select_atoms('name OD1 or name NH1') 
@@ -59,19 +69,30 @@ else:
            dist2=dist(in_sel1,in_sel4) 
            dist3=dist(in_sel3,in_sel2) 
            dist4=dist(in_sel3,in_sel4) 
-           dist_arr[i] =  np.amin ([dist1[-1],dist2[-1],dist3[-1],dist4[-1]])
+           dist_arr[i][1] =  np.amin ([dist1[-1],dist2[-1],dist3[-1],dist4[-1]])
+           dist_arr[i][0] =  ts.time*0.001
            i=i+1
     elif (res_set=={'LYS','GLU'}):
+        print("using LYS GLU salt bridge")
         #since we dont know which selection was passed as the argenine we can just pair up atoms arbitrarily so long as the logic makes sense.
         in_sel1=sel1.select_atoms('name OE1 or name NZ ') 
         in_sel2=sel2.select_atoms('name OE2 or name NZ ') 
         for ts in u.trajectory:
            dist1=dist(in_sel1,in_sel2) 
            dist2=dist(in_sel1,in_sel2) 
-           dist_arr[i] =  np.amin ([dist1[-1],dist2[-1],dist3[-1],dist4[-1]])
+           dist_arr[i][1] =  np.amin ([dist1[-1],dist2[-1],dist3[-1],dist4[-1]])
+           dist_arr[i][0] =  ts.time*0.001
            i=i+1
         pass
     elif (res_set=={'LYS','ASP'}):
+        print("using LYS ASP salt bridge")
         pass
+    else:
+        print("no special cases, doing normal residue to residue distances")
+        for ts in u.trajectory:
+           dist1=dist(sel1,sel2) 
+           dist_arr[i][1] =  dist1[-1]
+           dist_arr[i][0] =  ts.time*0.001
+           i=i+1
 print (dist_arr)
 np.savetxt(file_out_name,dist_arr)

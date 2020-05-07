@@ -12,13 +12,18 @@ import glob, os
 
 #distribute frames equally over cores 
 def distribute_frames_amongst_cores(num_frames, n_cores):
+    #what the actual hell is this code
+   #you've found the largest number that is less than num_frames and still divisible by n_cores
+   #found the difference between n_frames and this number
    int_block=int(num_frames/n_cores)
    diff=num_frames-(int_block)*n_cores
    blocks=[int_block]*n_cores
    blocks=np.array(blocks)
+   #now add 1 to some blocks to absorb the difference so we don't miss a bunch of frames at the end. 
    if diff!=0:
            blocks[0:diff]=blocks[0:diff]+1
 
+   #these weird indexes are gonna do my head in why did i think this was going to be a good idea.
    inds=np.zeros([n_cores,2])
    inds[0,:]=[0,blocks[1]]
    for i in range(1,n_cores):
@@ -38,7 +43,7 @@ def track_occ(frame_arr):
     u=mda.Universe(TOP,TRAJ)
 
     for us in u.trajectory[frame_arr[0]:frame_arr[1]]:
-        #print(u.trajectory.time)
+        print(u.trajectory.time)
         for i in range(num_res):
             seltext  = str("name CLA and around 5.0 (protein and resid " + str(res_list[i]) + ") " )
             cls_sel = u.select_atoms(seltext)
@@ -49,7 +54,7 @@ def track_occ(frame_arr):
         
 if __name__ == '__main__':
     #res_list = [95, 134]
-    res_list = np.array([95, 134, 153, 190, 248, 251, 254, 303, 334, 335, 347, 352, 968, 975, 978, 1030, 1041, 1048, 1097, 1158, 1162, 1165])
+    res_list = np.array([95, 134, 153, 190, 248, 251, 254, 303, 334, 335, 347, 352, 370, 968, 975, 978, 1030, 1041, 1048, 1097, 1158, 1162, 1165])
     num_res=len(res_list)
 
     TOP=str(sys.argv[1])
@@ -59,7 +64,6 @@ if __name__ == '__main__':
     #TRAJ='../test.xtc'
     #out_name=str('outname')
     n_cores=multiprocessing.cpu_count()
-    n_cores=4
 
     u=mda.Universe(TRAJ)
     num_frames=u.trajectory.n_frames

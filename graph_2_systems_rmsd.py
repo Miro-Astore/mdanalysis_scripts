@@ -102,17 +102,18 @@ for i in system_list:
 
 plt.subplot2grid((2,1),(1,0),colspan=1,rowspan=1)
 separation=0.1
-plt.bar(np.array([37])-width*0.50,1.05*np.amax(res_results),width,color='yellow')
-plt.bar(np.array([37])+width*0.50,1.05*np.amax(res_results),width,color='yellow')
+#yellow bar on mutant results
+#plt.bar(np.array([37])-width*0.50,1.05*np.amax(res_results),width,color='yellow')
+#plt.bar(np.array([37])+width*0.50,1.05*np.amax(res_results),width,color='yellow')
 plt.bar(inds-width*0.5,res_results[0,:],width,color='orange',label='I37R')
 plt.bar(inds+width*0.5,res_results[1,:],width,color='tab:blue',label='WT')
-plt.xlim([0,70+0.49])
 plt.ylim([0,1.05*np.amax(res_results)])
 plt.title('Residue Specific Lasoo Domain RMSDs (beyond 800ns)',fontsize=18)
 plt.xlabel('residue number',fontsize=14)
 plt.ylabel('CA RMSD ($\AA$)',fontsize=14)
 plt.xticks(fontsize=14)
 plt.yticks(fontsize=14)
+plt.xlim([0,50+0.49])
 plt.legend()
 
 plt.tight_layout()
