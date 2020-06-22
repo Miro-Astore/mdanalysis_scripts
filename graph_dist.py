@@ -2,36 +2,39 @@ import numpy as np
 import matplotlib.pyplot as plt 
 import matplotlib.gridspec as gridspec
 
-data=np.loadtxt('I37R_3_37R_823E.npy')
-data2=np.loadtxt('I37R_3_37R_826E.npy')
-data=data[0::50,:]
-data2=data2[0::50,:]
-data=[[float(row[0]),float(row[1])] for row in data if row[0] >= 800]
-data2=[[float(row[0]),float(row[1])] for row in data2 if row[0] >= 800]
-data=np.array(data)
-data=data.reshape((len(data),2))
-data2=np.array(data2)
-data2=data2.reshape((len(data2),2))
-plt.figure(figsize=(10,5))
-gridspec.GridSpec(2,1)
-plt.subplot2grid((2,1),(0,0),colspan=1,rowspan=1)
-plt.plot(data[:,0],data[:,1],label='R37-E823',color='orange')
-plt.xlabel('time (ns)',fontsize=16)
-plt.xticks(fontsize=14)
-plt.yticks(fontsize=14)
-plt.ylim([0,20])
-plt.ylabel("N-O distance ($\AA$)",fontsize=16)
-plt.legend(prop={'size':12})
-#plt.tight_layout()
-plt.subplot2grid((2,1),(1,0),colspan=1,rowspan=1)
-plt.plot(data2[:,0],data2[:,1],label='R37-E826',color='orange')
-plt.xlabel('time (ns)',fontsize=16)
-plt.xticks(fontsize=14)
-plt.yticks(fontsize=14)
-plt.ylim([0,20])
-plt.legend(prop={'size':12})
-#plt.tight_layout()
-#plt.plot(data2[:][0],data2[:][1])
+data_arr = [ '23_458.dat', '37_403.dat', '30_417.dat']
+color_arr = ['orange'] * 3
+legend_arr=['23_458', '37_403', '30_417']
 
-plt.ylabel("N-O distance ($\AA$)",fontsize=16)
+plt.figure(figsize=(10,5))
+gridspec.GridSpec(len(data_arr),1)
+temp_max=0
+
+for i in range(len(data_arr)):
+    data=np.loadtxt(data_arr[i])[0::50,:]
+    a_max=np.max(data[:,1])
+    if temp_max < a_max:
+        temp_max=a_max
+    
+    
+
+
+for i in range(len(data_arr)):
+
+
+    data=np.loadtxt(data_arr[i])[0::50,:]
+
+
+    data=np.array(data)
+    data=data.reshape((len(data),2))
+
+    plt.subplot2grid((len(data_arr),1),(i,0),colspan=1,rowspan=1)
+    plt.plot(data[:,0],data[:,1],label=legend_arr[i],color=color_arr[i])
+    plt.xlabel('time (ns)',fontsize=16)
+    plt.xticks(fontsize=14)
+    plt.yticks(fontsize=14)
+    plt.legend(prop={'size':12})
+    plt.ylim([0,temp_max])
+
+
 plt.show()
