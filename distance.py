@@ -104,7 +104,18 @@ else:
         pass
     elif (res_set=={'LYS','ASP'}):
         print("using LYS ASP salt bridge")
-        pass
+        whole_sel_text=sel1txt + ' or ' + sel2txt
+        whole_sel=u.select_atoms(whole_sel_text)
+
+        in_sel1=whole_sel.select_atoms('name OD1') 
+        in_sel2=whole_sel.select_atoms('name OD2') 
+        in_sel3=whole_sel.select_atoms('name NZ') 
+        for ts in u.trajectory:
+           dist1=dist(in_sel1,in_sel3) 
+           dist2=dist(in_sel2,in_sel3) 
+           dist_arr[i][1] =  np.amin ([dist1[-1],dist2[-1]])
+           dist_arr[i][0] =  ts.time*0.001
+           i=i+1
     else:
         print("no special cases, doing normal residue to residue distances")
         for ts in u.trajectory:
