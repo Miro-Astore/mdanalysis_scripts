@@ -98,7 +98,7 @@ else:
         for ts in u.trajectory:
            dist1=dist(in_sel1,in_sel2) 
            dist2=dist(in_sel1,in_sel2) 
-           dist_arr[i][1] =  np.amin ([dist1[-1],dist2[-1],dist3[-1],dist4[-1]])
+           dist_arr[i][1] =  np.amin ([dist1[-1],dist2[-1]])
            dist_arr[i][0] =  ts.time*0.001
            i=i+1
         pass
