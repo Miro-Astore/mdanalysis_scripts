@@ -10,3 +10,7 @@ R = MDAnalysis.analysis.rms.RMSD(traj_u,ref,select=ref_sel)
 R.run()
 closest_frame=np.argmin(R.rmsd[:,-1])
 print ("closest frame to reference is " + str(closest_frame) + " with an RMSD of " + str(R.rmsd[closest_frame] ))
+traj_u.trajectory[closest_frame]
+write_sel=traj_u.select_atoms('all')
+write_sel.write ('closest_to_ref.pdb')
+
