@@ -32,7 +32,7 @@ dist_arr=np.zeros([u.trajectory.n_frames,2])
 
 i=0
 
-#if there is more than 1 residue in each selection do distances as normal.
+#if there is more than 1 residue in each selection do distances things are weird and this code wont work properly.
 if ((CAs1.n_atoms==CAs2.n_atoms==1))==False and (sel1.n_atoms>1) and (sel2.n_atoms>1):
     print("doing normal distance measurements")
     for ts in u.trajectory:
@@ -114,6 +114,22 @@ else:
            dist1=dist(in_sel1,in_sel3) 
            dist2=dist(in_sel2,in_sel3) 
            dist_arr[i][1] =  np.amin ([dist1[-1],dist2[-1]])
+           dist_arr[i][0] =  ts.time*0.001
+           i=i+1
+    elif (res_set=={'ASN','ARG'}):
+        print("detected ASN ARG interaction")
+        whole_sel_text=sel1txt + ' or ' + sel2txt
+        whole_sel=u.select_atoms(whole_sel_text)
+
+        in_sel1=whole_sel.select_atoms('name OD1') 
+        in_sel2=whole_sel.select_atoms('name NE') 
+        in_sel3=whole_sel.select_atoms('name NH1') 
+        in_sel4=whole_sel.select_atoms('name NH2') 
+        for ts in u.trajectory:
+           dist1=dist(in_sel1,in_sel2) 
+           dist2=dist(in_sel1,in_sel3) 
+           dist3=dist(in_sel1,in_sel4) 
+           dist_arr[i][1] =  np.amin ([dist1[-1],dist2[-1],dist3[-1]])
            dist_arr[i][0] =  ts.time*0.001
            i=i+1
     else:
