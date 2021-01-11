@@ -1,3 +1,5 @@
+#usage:
+# python mdanalysis_scripts/rmsd.py top_file traj_file ref_struct out_name
 
 import MDAnalysis as mda
 import MDAnalysis.analysis.rms
@@ -8,6 +10,7 @@ import sys
 print ('psf ' + str(sys.argv[1]))
 print ('traj ' + str(sys.argv[2]))
 print ('refpdb ' + str(sys.argv[3]))
+print ('out_name ' + str(sys.argv[4]))
 u=mda.Universe(sys.argv[1],sys.argv[2])
 ref=mda.Universe(sys.argv[3])
 
@@ -16,4 +19,4 @@ select="name CA and resid 70 71 72 73 74 75 76 77 78 79 80 81 82 83 84 85 86 87 
 
 
 R.run()
-np.savetxt(str(sys.argv[2])[:-4] + '_rmsd.dat',R.rmsd)
+np.savetxt(str(sys.argv[4]),R.rmsd)
