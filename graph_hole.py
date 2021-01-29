@@ -11,39 +11,35 @@ import numpy as np
 #z=np.array(data[:,8],dtype=float)[rad<12]
 #rad=rad[rad<12]
 #z=np.array(range(len(rad)))*0.2
+file_list=['temp.sph','6msm_moved.sph']
+legend=["cryo-em structure","open"]
+y_max=0
 
-u=mda.Universe('../R352Q_last.sph',topology_format='PDB')
+for i in range(len(file_list)):
 
-z=u.atoms.positions[:,2]
-rad=u.atoms.tempfactors
-z, rad = (list(t) for t in zip(*sorted(zip(z, rad))))
+    u=mda.Universe(file_list[i],topology_format='PDB')
 
-plt.xlabel('distance into pore (z axis $\AA$)')
-plt.ylabel('pore radius $\AA$')
-plt.plot(z,rad,label='R352Q')
+    z=u.atoms.positions[:,2]
+    rad=u.atoms.tempfactors
+    z, rad = (list(t) for t in zip(*sorted(zip(z, rad))))
+    z=np.array(z)
+    rad=np.array(rad)
 
+    rad=rad[z>115]
+    z=z[z>115]
+    rad=rad[z<160]
+    z=z[z<160]
 
-u=mda.Universe('../I37R_test_doubt.sph',topology_format='PDB')
+    if y_max < np.max(rad):
+        y_max=np.max(rad)
+        plt.ylim([0,y_max*1.1])
 
-z=u.atoms.positions[:,2]
-z=list(z)
-rad=u.atoms.tempfactors
-rad=list(rad)
-z, rad = (list(t) for t in zip(*sorted(zip(z, rad))))
+    plt.xlabel('distance into pore (z axis $\AA$)')
+    plt.ylabel('pore radius $\AA$')
+    plt.plot(z,rad,label=legend[i])
 
-plt.xlabel('distance into pore (z axis $\AA$)')
-plt.ylabel('pore radius $\AA$')
-plt.plot(z,rad,label='I37R')
+    plt.legend()
 
-u=mda.Universe('../wt_last.sph',topology_format='PDB')
-
-z=u.atoms.positions[:,2]
-rad=u.atoms.tempfactors
-z, rad = (list(t) for t in zip(*sorted(zip(z, rad))))
-
-plt.xlabel('distance into pore (z axis $\AA$)')
-plt.ylabel('pore radius $\AA$')
-plt.plot(z,rad,label='wt')
-plt.legend()
-
-plt.savefig('test.pdf')
+#plt.savefig('test.pdf')
+plt.title('Comparison Between Flooded Structure and Cryo EM Structure')
+plt.show()
