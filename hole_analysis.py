@@ -53,7 +53,7 @@ atoms = u.select_atoms('all')
 #u2=mda.Universe('.pdb')
 #annoying wt sel
 #pore_entry_sel=u.select_atoms("resid  186 190 363 241 and name CA")
-pore_entry_sel=u.select_atoms("resid  186 360 249 and name CA")
+pore_entry_sel=u.select_atoms("resid 993 352")
 #pore_entry_sel=u.select_atoms("resid 334 336 352 and name CA")
 
 pore_start=pore_entry_sel.center_of_mass() 
