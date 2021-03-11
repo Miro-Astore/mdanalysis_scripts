@@ -40,6 +40,17 @@ if ((CAs1.n_atoms==CAs2.n_atoms==1))==False and (sel1.n_atoms>1) and (sel2.n_ato
        dist_arr[i][1] =  dist1
        dist_arr[i][0] =  ts.time*0.001
        i=i+1
+
+elif (CAs1.n_atoms==CAs2.n_atoms==1):
+    #checking out if we only have CA atoms
+    print("Detected CAs selection")
+    for ts in u.trajectory:
+       dist1=dist(sel1,sel2) 
+       dist_arr[i][1] =  dist1[-1]
+       dist_arr[i][0] =  ts.time*0.001
+       i=i+1
+
+    
 #else its single residue distances and we are going to want to do fancy things.
 #want to check N-O distances for salt bridges. Should probably add one for lysine too .
 else:
