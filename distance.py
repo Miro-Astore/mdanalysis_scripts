@@ -25,7 +25,7 @@ sel1=u.select_atoms(sel1txt)
 sel2=u.select_atoms(sel2txt)
 CAs1=sel1.select_atoms('name CA and protein')
 CAs2=sel2.select_atoms('name CA and protein')
-if len(CAs1) > 0 and len (Cas2) > 0 : 
+if len(CAs1) > 0 and len (CAs2) > 0 : 
     res_set={CAs1.resnames[0],CAs2.resnames[0]}
     print(res_set)
 else:
