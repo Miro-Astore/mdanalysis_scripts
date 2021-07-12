@@ -7,7 +7,7 @@ import matplotlib.gridspec as gridspec
 
 cwd=os.getcwd()
 #system_list=np.loadtxt('system_list',dtype=str)
-system_list=['_scratch_r16_ma2374_gmx_cftr_2nd_round_310K_I37R_3_rmsd.dat','_scratch_r16_ma2374_gmx_cftr_2nd_round_310K_wt_1_rmsd.dat','_scratch_r16_ma2374_gmx_cftr_2nd_round_310K_R352Q_1_rmsd.dat']
+system_list=['../1/sum_rmsd_nbd2.dat','../2/sum_rmsd_nbd2.dat','../3/sum_rmsd_nbd2.dat']
 colors=['orange','tab:blue','red']
 
 num_systems=len(system_list)

@@ -25,8 +25,11 @@ sel1=u.select_atoms(sel1txt)
 sel2=u.select_atoms(sel2txt)
 CAs1=sel1.select_atoms('name CA and protein')
 CAs2=sel2.select_atoms('name CA and protein')
-res_set={CAs1.resnames[0],CAs2.resnames[0]}
-print(res_set)
+if len(CAs1) > 0 and len (Cas2) > 0 : 
+    res_set={CAs1.resnames[0],CAs2.resnames[0]}
+    print(res_set)
+else:
+    res_set=''
 
 dist_arr=np.zeros([u.trajectory.n_frames,2])
 
@@ -40,6 +43,17 @@ if ((CAs1.n_atoms==CAs2.n_atoms==1))==False and (sel1.n_atoms>1) and (sel2.n_ato
        dist_arr[i][1] =  dist1
        dist_arr[i][0] =  ts.time*0.001
        i=i+1
+
+elif (CAs1.n_atoms==CAs2.n_atoms==1):
+    #checking out if we only have CA atoms
+    print("Detected CAs selection")
+    for ts in u.trajectory:
+       dist1=dist(sel1,sel2) 
+       dist_arr[i][1] =  dist1[-1]
+       dist_arr[i][0] =  ts.time*0.001
+       i=i+1
+
+    
 #else its single residue distances and we are going to want to do fancy things.
 #want to check N-O distances for salt bridges. Should probably add one for lysine too .
 else:
