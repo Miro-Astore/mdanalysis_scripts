@@ -1,3 +1,4 @@
+#usage: python mdanalysis/res_specific_rmsd.py TOPFILE TRAJFILE REF_STRUCTURE OUT_NAME.DAT
 import numpy as np
 import os 
 import MDAnalysis as mda
@@ -19,7 +20,7 @@ psf=sys.argv[1]
 xtc=sys.argv[2]
 ref=sys.argv[3]
 r = mda.Universe(ref)
-out_name=str(xtc[0:-4]) + '_res_rmsd.dat'
+out_name=sys.argv[4]
 u = mda.Universe(psf,xtc)
 R = MDAnalysis.analysis.rms.RMSD(u,r,select=
                                  "name CA and resid 1-70 and not resname UNK",

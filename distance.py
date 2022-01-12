@@ -44,7 +44,7 @@ if ((CAs1.n_atoms==CAs2.n_atoms==1))==False and (sel1.n_atoms>1) and (sel2.n_ato
        dist_arr[i][0] =  ts.time*0.001
        i=i+1
 
-elif (CAs1.n_atoms==CAs2.n_atoms==1) and (sel1.n_atoms==sel2.n_atoms==2):
+elif (CAs1.n_atoms==CAs2.n_atoms==1) and (sel1.n_atoms==sel2.n_atoms==1):
     #checking out if we only have CA atoms
     print("Detected CAs selection")
     for ts in u.trajectory:
