@@ -1,5 +1,4 @@
 import MDAnalysis as mda
-import IPython
 import re 
 import matplotlib.pyplot as plt
 import numpy as np 
@@ -11,8 +10,8 @@ import numpy as np
 #z=np.array(data[:,8],dtype=float)[rad<12]
 #rad=rad[rad<12]
 #z=np.array(range(len(rad)))*0.2
-file_list=['temp.sph','6msm_moved.sph']
-legend=["cryo-em structure","open"]
+file_list=['hole000.sph']
+legend=["cryo-em structure"]
 y_max=0
 
 for i in range(len(file_list)):

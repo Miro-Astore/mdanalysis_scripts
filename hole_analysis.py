@@ -5,10 +5,11 @@
 #####
 
 import MDAnalysis as mda
+import pdb
 import sys
 import os 
 import numpy as np 
-from MDAnalysis.analysis.hole import HOLEtraj
+import MDAnalysis.analysis.hole2 as hole2
 from MDAnalysis.transformations.translate import center_in_box
 from MDAnalysis.transformations.rotate import rotateby
 import MDAnalysis.transformations 
@@ -16,7 +17,7 @@ import MDAnalysis as mda
 from scipy.spatial.transform import Rotation as R
 ##finding origin ,
 import functools
-u=mda.Universe(sys.argv[-1])
+u=mda.Universe(sys.argv[1],sys.argv[2])
 #workflow=align_to_principal_axes(ag=pore_sel)
 
 #align_to_principal_axes = functools.partial(align_to_principal_axes,pore_sel)
@@ -52,8 +53,8 @@ atoms = u.select_atoms('all')
 
 #u2=mda.Universe('.pdb')
 #annoying wt sel
-#pore_entry_sel=u.select_atoms("resid  186 190 363 241 and name CA")
-pore_entry_sel=u.select_atoms("resid 993 352")
+pore_entry_sel=u.select_atoms("resid  1138 337 and name CA")
+#pore_entry_sel=u.select_atoms("resid 993 270 352")
 #pore_entry_sel=u.select_atoms("resid 334 336 352 and name CA")
 
 pore_start=pore_entry_sel.center_of_mass() 
@@ -64,9 +65,11 @@ sphpdb=str(sys.argv[-1])[:-4] + '.sph'
 
 print (sphpdb)
 
-H = HOLEtraj(u, cpoint=pore_start, cvect = [ 0 , 0 , 1],  executable="~/md/hole2/exe/hole")  # set path to your hole binary 
+H = hole2.HoleAnalysis(u, cpoint=pore_start, cvect = [ 0 , 0 , 1],  executable="/home/562/ma2374/hole2/exe/hole")  # set path to your hole binary 
 
 #H = HOLE('./6msm_prot.pdb', executable="~/md/hole2/exe/hole")  # set path to your hole binary 
+
+#pdb.set_trace()
 H.run()
 
 os.rename('hole.sph',sphpdb)
