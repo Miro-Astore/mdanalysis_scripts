@@ -38,7 +38,6 @@ class LoadGrace:
   def comments(self): return self._comments
   def __len__(self): return len(self._sets)
 
-LoadGrace('proj1.xvg')
 # If run as main program
 if __name__ == "__main__":
   import argparse
