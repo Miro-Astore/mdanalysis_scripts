@@ -18,11 +18,23 @@ class LoadGrace:
     for line in f:
       if re.compile('@    s(.*) legend').search(line):
         self._legends.append( line.split('"')[1] )
+      if re.compile('@\s*yaxis\s*label').search(line):
+        self._legends.append( line.split('"')[1] )
 
       if re.compile('@    s(.*) comment').search(line):
         self._comments.append( line.split('"')[1] )
 
       if '@target' in line:
+        tmp = []
+        next(f)
+        for row in f:
+          if row!='&\n':
+            tmp.append( np.fromstring( row, sep=' ' ) )
+          else:
+            self._sets.append( np.array(tmp) )
+            break
+
+      if '@ zeroxaxis bar linestyle 3' in line:
         tmp = []
         next(f)
         for row in f:
@@ -49,6 +61,7 @@ if __name__ == "__main__":
   d = LoadGrace( args.filename )
 
   for i in range(0, len(d)):
-    print ('\# legend=' + d.legends()[i] + ' comment=' + d.comments()[i])
+    #print ('# legend=' + d.legends()[i] + ' comment=' + d.comments()[i])
+    print ('# legend=' + d.legends()[i])
     print (d.sets()[i])
     print
