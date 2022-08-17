@@ -16,6 +16,8 @@ class LoadGrace:
 
     f = open(filename, 'r')
     for line in f:
+      if re.compile('@    s(.*) title').search(line):
+        self._legends.append( line.split('"')[1] )
       if re.compile('@    s(.*) legend').search(line):
         self._legends.append( line.split('"')[1] )
       if re.compile('@\s*yaxis\s*label').search(line):
@@ -35,6 +37,16 @@ class LoadGrace:
             break
 
       if '@ zeroxaxis bar linestyle 3' in line:
+        tmp = []
+        next(f)
+        for row in f:
+          if row!='&\n':
+            tmp.append( np.fromstring( row, sep=' ' ) )
+          else:
+            self._sets.append( np.array(tmp) )
+            break
+
+      if '@TYPE xy' in line:
         tmp = []
         next(f)
         for row in f:
