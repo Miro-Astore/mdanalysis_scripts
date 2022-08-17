@@ -1,6 +1,8 @@
 import numpy as np 
+import sys
+sys.path.insert(0, '.') # added on recomendation from https://stackoverflow.com/questions/279237/import-a-module-from-a-relative-path/6098238#6098238 probably a bad fix
 import matplotlib.pyplot as plt
-import LoadGrace
+from mdanalysis_scripts import LoadGrace
 from functools import reduce
 from matplotlib.ticker import MaxNLocator
 import re
