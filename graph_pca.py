@@ -1,6 +1,8 @@
 import numpy as np 
 import sys
+
 sys.path.insert(0, '.') # added on recomendation from https://stackoverflow.com/questions/279237/import-a-module-from-a-relative-path/6098238#6098238 probably a bad fix
+
 import matplotlib.pyplot as plt
 from mdanalysis_scripts import LoadGrace
 from functools import reduce
@@ -21,6 +23,7 @@ for i in range(num_pca_components_to_graph):
     plot_array.append(plt.subplot2grid((num_pca_components_to_graph,1),(i,0)))
 
 data = LoadGrace.LoadGrace('cov-domain-proj1to9.xvg')
+
 num_replicates=4
 data_in_each_replicate = [100000, 100001, 100001, 109997]
 
@@ -65,5 +68,6 @@ for i in range(num_pca_components_to_graph):
     plot_array[i].tick_params(axis='both',  labelsize=16)
 
 plt.tight_layout()
-#plt.show()
+plt.show()
+
 plt.savefig('graph_pca_1_2.pdf' )
