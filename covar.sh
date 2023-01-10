@@ -5,7 +5,7 @@ initNDXFile=wt_ca_domains.ndx
 
 prefix=both_tmd
 TPRFile=backbone.tpr
-XTCFile=tetramer_combined.xtc
+XTCFile=tetramer_backbone_combined.xtc
 output=cov-domain-tetramer
 selText=both_tmd
 ## = = Extract alpha-Carbons for quicker processing.
