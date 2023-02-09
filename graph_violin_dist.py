@@ -2,7 +2,7 @@ import numpy as np
 import matplotlib.pyplot as plt 
 import matplotlib.gridspec as gridspec
 
-data_arr = [ 'ARD_distances/apo/ARD_distances.dat', 'ARD_distances/toxin/ARD_distances.dat']
+data_arr = [ '/mnt/ceph/users/mastore/apo_trpv1/combined_ARD.dat', '/mnt/ceph/users/mastore/trpv1_soybean_nanodisc/combined_ARD.dat']
 legend_arr = ['apo','toxin bound']
 color_arr = ['tab:blue','red']
 
@@ -39,7 +39,7 @@ for i in range(len(data_arr)):
     if do_touching:
         touching_proportion[i] = np.sum(y<touching_dist)/len(y)
 
-    print(len(x))
+    print(len(y))
 
     plt.violinplot(y, [i], showextrema=False)
 

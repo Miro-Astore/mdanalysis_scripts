@@ -1,10 +1,10 @@
 import numpy as np
 import matplotlib.pyplot as plt 
 
-dat_files = ['/Users/mastore/temp/rmsf/WT/350K/1/elbow_rmsf.xvg','/Users/mastore/temp/rmsf/WT/350K/2/elbow_rmsf.xvg','/Users/mastore/temp/rmsf/WT/350K/3/elbow_rmsf.xvg']
-start_res = 845
-colors = ['tab:blue','green','orange']
-labels = ['simulation 1', 'simulation 2', 'simulation 3']
+dat_files = ['/mnt/ceph/users/mastore/apo_trpv1/rmsf_S5_A.xvg','/mnt/home/mastore/ceph/trpv1_soybean_nanodisc/rmsf_S5_A.xvg']
+start_res = 562
+colors = ['red','green']
+labels = ['apo', 'toxin-bound']
 y_max = 0
 
 for i in range(len(dat_files)):
@@ -19,8 +19,8 @@ for i in range(len(dat_files)):
 
 plt.ylim([0, 1.1*y_max])
 plt.xlim([start_res-1, res[-1]+1])
-plt.ylabel('WT R-domain Elbow RMSF $\AA$',size=16)
+plt.ylabel('S5 RMSF $\AA$',size=16)
 plt.xlabel('Amino Acid Number',size=16)
 plt.legend()
-plt.savefig('WT.pdf')
+plt.savefig('S5_rmsf.pdf')
 plt.show()
