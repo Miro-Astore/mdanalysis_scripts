@@ -1,25 +1,34 @@
 from MDAnalysis.analysis.distances import dist
 import MDAnalysis as mda
-import MDAnalysis.analysis.rms
 
 import numpy as np 
 import sys
 #####
-#USAGE: python mdanalysis_scripts/distance.py TOPFILE traj sel1 sel2 out_name
+#USAGE: python mdanalysis_scripts/distance.py TOPFILE traj out_file sel1 sel2 sel3 sel4 ...
 #
-#TODO better detection of lysine bridges, trying to fix argenine detection
 #####
 print ('TOP ' + str(sys.argv[1]))
 print ('traj ' + str(sys.argv[2]))
-print ('sel1 ' + str(sys.argv[3]))
-print ('sel2 ' + str(sys.argv[4]))
-print ('out_name ' + str(sys.argv[5]))
+print ('out_name ' + str(sys.argv[3]))
+if len(sys.argv) % 2 != 0:
+    raise ValueError ("wrong number of arguments, make sure you have topology, trajectory, output file and an even number of selection strings")
+
+sel_string_pairs_list =  []
+
+for i in range(4,len(sys.argv),2):
+    
+    n_pairs = len(range(4,len(sys.argv),2))
+
+    print('sel' + str (i) + ': ' + str(sys.argv[i]) +  ', sel' + str (i+1) + ': ' + str(sys.argv[i+1]) + ' ')
+    sel_string_pairs_list.append([str(sys.argv[i]), str(sys.argv[i+1])])
+print(sel_string_pairs_list)
+    
 u=mda.Universe(sys.argv[1],sys.argv[2])
 
-file_out_name = str(sys.argv[5])
+file_out_name = str(sys.argv[3])
 
-sel1txt=str(sys.argv[3])
-sel2txt=str(sys.argv[4])
+#sel1txt=str(sys.argv[4])
+#sel2txt=str(sys.argv[5])
 
 sel1=u.select_atoms(sel1txt)
 sel2=u.select_atoms(sel2txt)
@@ -35,7 +44,7 @@ dist_arr=np.zeros([u.trajectory.n_frames,2])
 
 i=0
 
-#if there is more than 1 residue in each selection do distances things are weird and this code wont work properly.
+#if there is more than 1 residue in each selection do distances like normal
 if ((CAs1.n_atoms==CAs2.n_atoms==1))==False and (sel1.n_atoms>1) and (sel2.n_atoms>1):
     print("doing normal distance measurements")
     for ts in u.trajectory:
