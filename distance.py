@@ -3,31 +3,34 @@ import MDAnalysis as mda
 
 import numpy as np 
 import sys
+import argparse
 #####
 #USAGE: python mdanalysis_scripts/distance.py TOPFILE traj out_file sel1 sel2 sel3 sel4 ...
 #
 #####
-print ('TOP ' + str(sys.argv[1]))
-print ('traj ' + str(sys.argv[2]))
-print ('out_name ' + str(sys.argv[3]))
-if len(sys.argv) % 2 != 0:
-    raise ValueError ("wrong number of arguments, make sure you have topology, trajectory, output file and an even number of selection strings")
 
-sel_string_pairs_list =  []
+parser = argparse.ArgumentParser()
+
+parser.add_argument('--topology', '-top', dest='top_file' , help='System topology file') 
+parser.add_argument('--trajectory', '-traj', dest='traj_file', help='Simulation trajectory file') 
+parser.add_argument('--stride', '-st', dest='stride' , default = 1, help='Simulation trajectory file') 
+parser.add_argument('--out', '-o', dest='out_file', default='distances.dat', help='Output file') 
+parser.add_argument('--selections', '-s', dest='selection_strings', help='Selection strings with the syntax of MDAnalysis', nargs="+") 
+
+args = parser.parse_args()
+
 
 #make pairs of selection strings
-for i in range(4,len(sys.argv),2):
-    
-    n_pairs = len(range(4,len(sys.argv),2))
+sel_string_pairs_list =  []
 
-    print('sel' + str (i) + ': ' + str(sys.argv[i]) +  ', sel' + str (i+1) + ': ' + str(sys.argv[i+1]) + ' ')
-    sel_string_pairs_list.append([str(sys.argv[i]), str(sys.argv[i+1])])
-
+n_pairs = len(range(0,len(args.selection_strings),2))
+for i in range(0,len(args.selection_strings),2):
+    print ('pairs: ')
+    print('\"' + args.selection_strings[i] + '\"-\"' + args.selection_strings[i] + '\"')
+    sel_string_pairs_list.append([args.selection_strings[i], args.selection_strings[i+1]])
 
 #make universe object
-u=mda.Universe(sys.argv[1],sys.argv[2])
-
-file_out_name = str(sys.argv[3])
+u=mda.Universe(args.top_file,args.traj_file)
 
 #make pairs of selection objects
 sel_objects_pairs_list = [] 
@@ -111,11 +114,10 @@ for i in range(n_pairs):
         
 
 print(pair_type_dict)
-dist_arr=np.zeros([u.trajectory.n_frames,n_pairs+1])
-
+dist_arr=np.zeros([len(u.trajectory[::int(args.stride)]),n_pairs+1])
 frame=0
 
-for ts in u.trajectory:
+for ts in u.trajectory[::int(args.stride)]:
     dist_arr[frame][0] =  ts.time*0.001
     for i in range(n_pairs):
 
@@ -177,11 +179,9 @@ for ts in u.trajectory:
     frame = frame + 1
 #printing results and saving to file
 header_str = 'time, '
-
-
 print (dist_arr)
-for i in range(4,len(sys.argv),2):
-    header_str = header_str + '\"' + str(sys.argv[i]) +  '\"-\"' + str(sys.argv[i+1]) + '\", '
+for i in range(0,len(args.selection_strings),2):
+    header_str = header_str + '\"' + str(args.selection_strings[i]) +  '\"-\"' + str(args.selection_strings[i+1]) + '\", '
 header_str = header_str [:-2]
-print(header_str)
-np.savetxt(file_out_name,dist_arr,header = header_str)
+
+np.savetxt(args.out_file,dist_arr,header = header_str)
