@@ -26,7 +26,7 @@ sel_string_pairs_list =  []
 n_pairs = len(range(0,len(args.selection_strings),2))
 for i in range(0,len(args.selection_strings),2):
     print ('pairs: ')
-    print('\"' + args.selection_strings[i] + '\"-\"' + args.selection_strings[i] + '\"')
+    print('\"' + args.selection_strings[i] + '\"-\"' + args.selection_strings[i+1] + '\"')
     sel_string_pairs_list.append([args.selection_strings[i], args.selection_strings[i+1]])
 
 #make universe object
