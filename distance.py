@@ -13,9 +13,13 @@ parser = argparse.ArgumentParser()
 
 parser.add_argument('--topology', '-top', dest='top_file' , help='System topology file') 
 parser.add_argument('--trajectory', '-traj', dest='traj_file', help='Simulation trajectory file') 
-parser.add_argument('--stride', '-st', dest='stride' , default = 1, help='Simulation trajectory file') 
+parser.add_argument('--stride', '-st', dest='stride' , default = 1, help='Stride through trajectory skipping this many frames.') 
 parser.add_argument('--out', '-o', dest='out_file', default='distances.dat', help='Output file') 
 parser.add_argument('--selections', '-s', dest='selection_strings', help='Selection strings with the syntax of MDAnalysis', nargs="+") 
+parser.add_argument('--begin', '-b', dest='beginning_frame', help='Frame from which to begin analysis.',type=int) 
+parser.add_argument('--end', '-e', dest='ending_frame', help='Frame at which to end analysis.',type=int) 
+parser.add_argument('--first_n_frames', '-f', dest='first_n_frames', help='Analyse the first n frames of the trajectory.',type=int) 
+parser.add_argument('--last_n_frames', '-l', dest='last_n_frames', help='Analyse the last n frames of the trajectory.',type=int) 
 
 args = parser.parse_args()
 
@@ -114,11 +118,68 @@ for i in range(n_pairs):
         
 
 print(pair_type_dict)
-dist_arr=np.zeros([len(u.trajectory[::int(args.stride)]),n_pairs+1])
-frame=0
 
-for ts in u.trajectory[::int(args.stride)]:
-    dist_arr[frame][0] =  ts.time*0.001
+#this was so much more work than it should have been. 
+    
+if args.first_n_frames is None and args.beginning_frame is None and args.ending_frame is None and args.last_n_frames is None : 
+
+    print(1)
+    first_frame = 0
+    last_frame = -1
+
+elif args.first_n_frames is not None and args.beginning_frame is None and args.ending_frame is None and args.last_n_frames is None : 
+
+    print(2)
+    first_frame = 0
+    last_frame = args.first_n_frames
+
+elif args.first_n_frames is None and args.beginning_frame is not None and args.ending_frame is None and args.last_n_frames is None : 
+
+    print(3)
+    first_frame = args.beginning_frame
+    last_frame = -1
+    
+elif args.first_n_frames is None and args.beginning_frame is None and args.ending_frame is None and args.last_n_frames is not None : 
+
+    print(4)
+    first_frame = u.trajectory.n_frames - args.last_n_frames
+    last_frame = -1
+
+elif args.first_n_frames is None and args.beginning_frame is not None and args.ending_frame is not None and args.last_n_frames is None : 
+
+    print(5)
+    first_frame = args.beginning_frame
+    last_frame = args.ending_frame
+
+elif args.first_n_frames is None and args.beginning_frame is None and args.ending_frame is not None and args.last_n_frames is None : 
+
+    print(6)
+    first_frame = 0
+    last_frame = args.ending_frame
+
+    
+elif args.first_n_frames is None and args.beginning_frame is None and args.ending_frame is not None and args.last_n_frames is not None : 
+
+    print(7)
+    first_frame = u.trajectory.n_frames - args.last_n_frames
+    last_frame = args.ending_frame
+
+elif args.first_n_frames is not None and args.beginning_frame is not None and args.ending_frame is None and args.last_n_frames is None : 
+    
+    print(8)
+    first_frame = args.beginning_frame
+    last_frame = args.first_n_frames
+
+else:
+
+    raise UserWarning('You need to make sure that the right set of beginning and ending flags are specified. Something is wrong. For example, have you tried to tell the script to analyse both the first m frames and the last m frames? This would create a disjoint interval. ')
+
+
+dist_arr=np.zeros([len(u.trajectory[first_frame:last_frame:int(args.stride)]),n_pairs+1])
+dist_array_row=0
+
+for ts in u.trajectory[first_frame:last_frame:int(args.stride)]:
+    dist_arr[dist_array_row][0] =  ts.time*0.001
     for i in range(n_pairs):
 
             
@@ -130,7 +191,7 @@ for ts in u.trajectory[::int(args.stride)]:
 
             in_sel1=sel_objects_pairs_list[i][0]
             in_sel2=sel_objects_pairs_list[i][1]
-            dist_arr[frame][i+1] = dist(in_sel1,in_sel2)[-1]
+            dist_arr[dist_array_row][i+1] = dist(in_sel1,in_sel2)[-1]
 
         elif (pair_type_dict[i] == "RE_SB" or pair_type_dict[i] == "RD_SB"):
             #since we dont know which selection was passed as the argenine we can just pair up atoms arbitrarily so long as the logic makes sense.
@@ -152,7 +213,7 @@ for ts in u.trajectory[::int(args.stride)]:
             dist5=dist(in_sel2,in_sel4) 
             dist6=dist(in_sel2,in_sel5) 
 
-            dist_arr[frame][i+1] =  np.amin ([dist1[-1],dist2[-1],dist3[-1],dist4[-1],dist5[-1],dist6[-1]])
+            dist_arr[dist_array_row][i+1] =  np.amin ([dist1[-1],dist2[-1],dist3[-1],dist4[-1],dist5[-1],dist6[-1]])
             continue
 
         elif (pair_type_dict[i] == "KE_SB" or pair_type_dict[i] == "KD_SB"):
@@ -164,7 +225,7 @@ for ts in u.trajectory[::int(args.stride)]:
             dist1=dist(in_sel1,in_sel2) 
             dist2=dist(in_sel1,in_sel3) 
 
-            dist_arr[frame][i+1] =  np.amin ([dist1[-1],dist2[-1]])
+            dist_arr[dist_array_row][i+1] =  np.amin ([dist1[-1],dist2[-1]])
             continue
 
 
@@ -173,10 +234,10 @@ for ts in u.trajectory[::int(args.stride)]:
            dist1=dist(in_sel1,in_sel2) 
            dist2=dist(in_sel1,in_sel3) 
            dist3=dist(in_sel1,in_sel4) 
-           dist_arr[frame][i+1] =  np.amin ([dist1[-1],dist2[-1],dist3[-1]])
+           dist_arr[dist_array_row][i+1] =  np.amin ([dist1[-1],dist2[-1],dist3[-1]])
            continue
 
-    frame = frame + 1
+    dist_array_row = dist_array_row + 1
 #printing results and saving to file
 header_str = 'time, '
 print (dist_arr)
