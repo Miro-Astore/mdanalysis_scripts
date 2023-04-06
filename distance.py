@@ -174,7 +174,7 @@ else:
 
     raise UserWarning('You need to make sure that the right set of beginning and ending flags are specified. Something is wrong. For example, have you tried to tell the script to analyse both the first m frames and the last m frames? This would create a disjoint interval. ')
 
-if first_frame > last_frame:
+if first_frame > last_frame and last_frame != -1 :
     raise UserWarning('Chosen frames for analysis would create a disjoint interval which will produce an empty array. Check your selections and try again')
 
 
