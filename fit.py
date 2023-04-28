@@ -3,7 +3,7 @@ import MDAnalysis.transformations.fit as fit
 import sys 
 import argparse
 #####
-#USAGE: python mdanalysis_scripts/fit.py -top TOPFILE -traj -o sel --stride n --begin --end 
+#USAGE: python mdanalysis_scripts/fit.py -rt reference_top_file  -rs reference_structure  -tt target_topology -ts target_simulation  -o output_trajectory  --stride n --begin n --end n 
 #
 #####
 
