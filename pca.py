@@ -22,7 +22,7 @@ parser.add_argument('--out', '-o', dest='out_file',default="pca", help='Output f
 parser.add_argument('--stride', '-dt', dest='stride' , default=1, help='Stride through trajectory skipping this many frames.',type=int) 
 parser.add_argument('--n-components', '-n', dest='n_components' , default = 2, help='calculate this many Principal Components of the trajectory.',type=int) 
 
-parser.add_argument('--s-components', dest='symmetry_list',  help='List of selections which compose a single symmetry group. This script expects symmetric groups to have the same number of atoms when the selection string is applied. For example you might have 4 identical chains so you would pass the argument "--s-components \'segid A\' \'segid B\' \'segid C\' \'segid D\'" to this script. The user is also warned that the groups will be treated cyclically. So in the previous example A will move to B, B to C, C to D and D to A. This will keep the relative arrangement of components so long as the user names the groups in the correct order. ',nargs="+") 
+parser.add_argument('--symmetry-components', dest='symmetry_list',  help='List of selections which compose a single symmetry group. This script expects symmetric groups to have the same number of atoms when the selection string is applied. For example you might have 4 identical chains so you would pass the argument "--s-components \'segid A\' \'segid B\' \'segid C\' \'segid D\'" to this script. The user is also warned that the groups will be treated cyclically. So in the previous example A will move to B, B to C, C to D and D to A. This will keep the relative arrangement of components so long as the user names the groups in the correct order. ',nargs="+") 
 
 parser.add_argument('--selection', '-s', dest='selection_string', help='Selection string for fitting. Will be applied to both target and reference structures.',type=str, default="name CA") 
 parser.add_argument('--n-frames', '-fn', dest='n_vis_frames', help='Number of frames to visualise',type=str, default=30) 
@@ -58,7 +58,7 @@ if args.symmetry_list != None:
     names = selection_object.atoms.names
     resids = selection_object.atoms.resids
     resnames = selection_object.atoms.resnames
-    selection_object.write('temp_pdb_file.pdb')
+    selection_object.write('/dev/shm/temp_pdb_file.pdb')
 
     #empty_universe = mda.Universe.empty(selection_object.n_atoms, atom_resindex=resids, n_residues=selection_object.n_residues, n_segments=selection_object.n_segments, trajectory=True)
     analysis_universe = mda.Universe('temp_pdb_file.pdb')
@@ -118,7 +118,7 @@ if args.in_mem==True:
 else:
     print('here')
     #pdb.set_trace()
-    aligner = align.AlignTraj(analysis_universe, ref_universe, filename='thing.dcd')
+    aligner = align.AlignTraj(analysis_universe, ref_universe, filename='/dev/shm/aligned.dcd')
     aligner.run()
     print('done')
 
