@@ -10,13 +10,14 @@ from MDAnalysis.analysis.base import AnalysisFromFunction
 import argparse 
 import sys 
 import os
+import matplotlib.pyplot as plt
 #TODO. do more things in memory
 
 pdb.Pdb.complete=rlcompleter.Completer(locals()).complete
 
 parser = argparse.ArgumentParser()
 
-parser.add_argument('--topology', '-t', dest='top' , help='topology file',type=str) 
+parser.add_argument('--topology', '-t', dest='topology' , help='topology file',type=str) 
 parser.add_argument('--trajectory', '-j', dest='traj', help='trajectory file',type=str) 
 parser.add_argument('--out', '-o', dest='out_file',default="pca", help='Output file',type=str) 
 parser.add_argument('--stride', '-dt', dest='stride' , default=1, help='Stride through trajectory skipping this many frames.',type=int) 
@@ -32,7 +33,7 @@ args = parser.parse_args()
 
 selection_string = args.selection_string 
 
-universe = mda.Universe(args.top,args.traj)
+universe = mda.Universe(args.topology,args.traj)
 #universe.trajectory = universe.trajectory[0::args.stride] 
 
 
@@ -55,18 +56,9 @@ if args.symmetry_list != None:
     segids = list(set(selection_object.segids))
     segids_indices = selection_object.atoms.segindices
 
-    names = selection_object.atoms.names
-    resids = selection_object.atoms.resids
-    resnames = selection_object.atoms.resnames
     selection_object.write('/dev/shm/temp_pdb_file.pdb')
 
-    #empty_universe = mda.Universe.empty(selection_object.n_atoms, atom_resindex=resids, n_residues=selection_object.n_residues, n_segments=selection_object.n_segments, trajectory=True)
-    analysis_universe = mda.Universe('temp_pdb_file.pdb')
-
-    #empty_universe.add_TopologyAttr('name', names)
-    #empty_universe.add_TopologyAttr('resid', resids)
-    #empty_universe.add_TopologyAttr('resname', resnames)
-    #empty_universe.add_TopologyAttr('segid', segids)
+    analysis_universe = mda.Universe('/dev/shm/temp_pdb_file.pdb')
 
     coordinates = np.empty((len(universe.trajectory[::args.stride]) * len(args.symmetry_list), selection_object.n_atoms, 3))
 
@@ -76,7 +68,7 @@ if args.symmetry_list != None:
     #print(np.shape(np.concatenate(temp_coords1 , axis = 1)))
     coordinates [0:len(universe.trajectory[::args.stride])] = np.concatenate(temp_coords1 , axis = 1)
 
-    for i in range(0,len(args.symmetry_list)):
+    for i in range(1,len(args.symmetry_list)):
         temp_coords1 = np.concatenate (([temp_coords1[-1]],temp_coords1[0:-1]), axis=0)
         coordinates[i*len(universe.trajectory[::args.stride]):(i+1)*len(universe.trajectory[::args.stride])] =  np.concatenate(temp_coords1 , axis = 1)
 
@@ -114,13 +106,10 @@ analysis_universe.load_new('/dev/shm/analysis_universe_traj.xtc')
 
 print('Aligning Trajectory')
 if args.in_mem==True:
-    aligner = align.AlignTraj(analysis_universe, analysis_universe, in_memory=True).run()
+    aligner = align.AlignTraj(analysis_universe, analysis_universe, in_memory=True).run(stride=args.stride)
 else:
-    print('here')
-    #pdb.set_trace()
     aligner = align.AlignTraj(analysis_universe, ref_universe, filename='/dev/shm/aligned.dcd')
     aligner.run()
-    print('done')
 
     analysis_universe.atoms.write ('/dev/shm/analysis.pdb')
 
@@ -142,15 +131,24 @@ print('Calculating covariance.')
 pc = pca.PCA(analysis_universe, n_components=args.n_components,verbose=True).run()
 
 
-#transformed = pc.transform(selection_object, 1)
+transformed = pc.transform(analysis_universe.atoms, args.n_components)
+np.save(args.out_file + '_transformed_test.npy',transformed)
 
 np.save(args.out_file + '_eigenvectors.npy', pc.results.p_components)
 np.save(args.out_file + '_eigenvalues.npy', np.sqrt(pc.results.variance))
+np.save(args.out_file + '_mean.npy', (pc.mean.flatten()))
 
+mean_universe = mda.Merge(selection_object)
+
+mean_universe.load_new(pc.mean, order="fac")
+mean_universe.atoms.write('mean.pdb')
+
+#pdb.set_trace()
 for i in range(args.n_components):
 
     # visualise loadings
     pc_vector = pc.results.p_components[:, i] * np.sqrt(pc.results.variance[i])
+    #pc_vector = pc.results.p_components[:, i] 
 
     #pc1 = pc.results.p_components[:, 0] 
     origin = np.zeros(len(pc_vector))
@@ -161,9 +159,9 @@ for i in range(args.n_components):
 
     #projected = np.outer([dummy_coords,dummy_coords2], pc1) + pc.mean.flatten()
     projected = pc_traj + pc.mean.flatten()
+    #pdb.set_trace()
 
     coordinates = projected.reshape(len(pc_traj), -1, 3)
-
 
     proj1 = mda.Merge(selection_object)
 
