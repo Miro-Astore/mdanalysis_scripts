@@ -23,6 +23,7 @@ parser.add_argument('--out', '-o', dest='out_file',default="pca", help='Output f
 parser.add_argument('--stride', '-dt', dest='stride' , default=1, help='Stride through trajectory skipping this many frames.',type=int) 
 parser.add_argument('--n-components', '-n', dest='n_components' , default = 2, help='calculate this many Principal Components of the trajectory.',type=int) 
 
+parser.add_argument('--ref', dest='reference',  help='Reference_structure, used for alignment') 
 parser.add_argument('--symmetry-components', dest='symmetry_list',  help='List of selections which compose a single symmetry group. This script expects symmetric groups to have the same number of atoms when the selection string is applied. For example you might have 4 identical chains so you would pass the argument "--s-components \'segid A\' \'segid B\' \'segid C\' \'segid D\'" to this script. The user is also warned that the groups will be treated cyclically. So in the previous example A will move to B, B to C, C to D and D to A. This will keep the relative arrangement of components so long as the user names the groups in the correct order. ',nargs="+") 
 
 parser.add_argument('--selection', '-s', dest='selection_string', help='Selection string for fitting. Will be applied to both target and reference structures.',type=str, default="name CA") 
@@ -66,6 +67,7 @@ if args.symmetry_list != None:
 
     #new_universe = selection_object.load_new(coordinates, order='fac')
     #print(np.shape(np.concatenate(temp_coords1 , axis = 1)))
+
     coordinates [0:len(universe.trajectory[::args.stride])] = np.concatenate(temp_coords1 , axis = 1)
 
     for i in range(1,len(args.symmetry_list)):
@@ -98,7 +100,7 @@ with mda.Writer(('/dev/shm/analysis_universe_traj.xtc'), analysis_universe.atoms
     for ts in analysis_universe.trajectory:
         W.write(analysis_universe.atoms)
 
-ref_universe = mda.Universe('/dev/shm/temp_pdb_file.pdb')
+ref_universe = mda.Universe(args.topology, args.reference)
 analysis_universe = mda.Universe('/dev/shm/temp_pdb_file.pdb')
 #load like this to over write first frame
 analysis_universe.load_new('/dev/shm/analysis_universe_traj.xtc')
@@ -106,9 +108,11 @@ analysis_universe.load_new('/dev/shm/analysis_universe_traj.xtc')
 
 print('Aligning Trajectory')
 if args.in_mem==True:
-    aligner = align.AlignTraj(analysis_universe, analysis_universe, in_memory=True).run(stride=args.stride)
-else:
+    aligner = align.AlignTraj(analysis_universe, ref_universe, in_memory=True).run(stride=args.stride)
     aligner = align.AlignTraj(analysis_universe, ref_universe, filename='/dev/shm/aligned.dcd')
+    aligner.run()
+else:
+    aligner = align.AlignTraj(analysis_universe, ref_universe, filename='/dev/shm/aligned.dcd',select = args.selection_string)
     aligner.run()
 
     analysis_universe.atoms.write ('/dev/shm/analysis.pdb')
