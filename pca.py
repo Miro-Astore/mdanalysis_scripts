@@ -1,8 +1,6 @@
 import numpy as np
 
 import pandas as pd 
-import pdb
-import rlcompleter
 import MDAnalysis as mda 
 from MDAnalysis.analysis import pca, align
 from MDAnalysis.coordinates.memory import MemoryReader
@@ -13,6 +11,8 @@ import os
 import matplotlib.pyplot as plt
 #TODO. do more things in memory
 
+import pdb
+import rlcompleter
 pdb.Pdb.complete=rlcompleter.Completer(locals()).complete
 
 parser = argparse.ArgumentParser()
