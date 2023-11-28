@@ -5,6 +5,7 @@ from MDAnalysis.analysis import pca, align
 from MDAnalysis.coordinates.memory import MemoryReader
 from MDAnalysis.analysis.base import AnalysisFromFunction
 from sklearn.decomposition import PCA
+print('imported modules') 
 
 import argparse 
 #TODO. do more things in memory
@@ -49,11 +50,18 @@ def copy_coords(ag):
 if args.symmetry_list != None:
     #segids_coords = [ [selection_object.select_atoms()]]
     n_atoms_set =set(([selection_object.select_atoms(current_symmetry).n_atoms for current_symmetry in args.symmetry_list]))
+
+
     if len(n_atoms_set)  > 1 :
         raise ValueError('The selections you have chosen to delineate symmetry groups results in atom groups with different numbers of atoms. Check your structure and your selection strings.')
+    if list(n_atoms_set)[0]  == 0 :
+        raise ValueError('Symmetry group selection has resulted in no atoms. Check selection string.')
+    if selection_object.n_atoms  == 0 :
+        raise ValueError('Selection object contains no atoms. Check selection object and try again.')
+    if selection_object.n_atoms % list(n_atoms_set)[0] > 1 :
+        raise ValueError('Number of atoms in symmetry group does not evenly divide full selection object. Check selection strings and try again.')
 
     temp_coords1 = [[selection_object.select_atoms(current_symmetry).positions for ts in universe.trajectory[::args.stride]] for current_symmetry in args.symmetry_list]
-
 
     segids = list(set(selection_object.segids))
     segids_indices = selection_object.atoms.segindices
@@ -62,7 +70,7 @@ if args.symmetry_list != None:
 
     analysis_universe = mda.Universe('/dev/shm/temp_pdb_file.pdb')
 
-    coordinates = np.empty((len(universe.trajectory[::args.stride]) * len(args.symmetry_list), selection_object.n_atoms, 3))
+    coordinates = np.empty((len(universe.trajectory[::args.stride]) * len(args.symmetry_list), selection_object.n_atoms, 3),dtype=np.float32)
 
     #coordinates = np.empty((universe.trajectory.n_frames * len(args.symmetry_list), selection_object.n_atoms, 3))
 
@@ -92,7 +100,7 @@ else:
     selection_object.write('/dev/shm/temp_pdb_file.pdb')
 
     analysis_universe = mda.Universe('/dev/shm/temp_pdb_file.pdb')
-    coordinates = np.array([selection_object.positions for ts in universe.trajectory[::args.stride]])
+    coordinates = np.array([selection_object.positions for ts in universe.trajectory[::args.stride]],dtype=np.float32)
      
 analysis_universe = analysis_universe.load_new (coordinates)
 
@@ -137,10 +145,21 @@ else:
 
 print('Trajectory Aligned')
 
-analysis_universe_coordinates = np.array([analysis_universe.atoms.positions for ts in analysis_universe.trajectory])
+analysis_universe_coordinates = np.array([analysis_universe.atoms.positions for ts in analysis_universe.trajectory],dtype=np.float32)
 analysis_universe_coordinates = analysis_universe_coordinates.reshape((analysis_universe.trajectory.n_frames,analysis_universe.atoms.n_atoms*3))
+
 store_mean =  np.mean(analysis_universe_coordinates,axis=0)
-store_std =  np.sqrt(np.std(analysis_universe_coordinates,axis=0))
+
+demeaned_coords = analysis_universe_coordinates - store_mean
+demeaned_coords = demeaned_coords.reshape(analysis_universe.trajectory.n_frames,analysis_universe.atoms.n_atoms,3) 
+dist_from_mean = np.linalg.norm(demeaned_coords,axis=2)
+print(np.shape(dist_from_mean))
+
+#np.save ('mean_molecular_structure.npy', store_mean)
+store_std =  np.sqrt(np.std(dist_from_mean,axis=0))
+print(np.shape(store_std))
+#store_std =  [num for num in store_std for _ in range(3)]
+store_std = np.sqrt(np.std(analysis_universe_coordinates,axis=0))
 
 whitened_coords = (analysis_universe_coordinates - store_mean ) / store_std
 
@@ -170,7 +189,7 @@ np.save(args.out_file + '_mean.npy', (pc.mean_))
 mean_universe = mda.Merge(selection_object)
 
 print(np.shape(pc.mean_))
-mean_coords = np.reshape(pc.mean_,(analysis_universe.atoms.n_atoms,3))
+mean_coords = np.reshape(store_mean,(analysis_universe.atoms.n_atoms,3))
 mean_universe.load_new(mean_coords, order="fac")
 mean_universe.atoms.write('mean.pdb')
 
