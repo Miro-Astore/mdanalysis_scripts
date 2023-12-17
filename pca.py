@@ -22,6 +22,7 @@ parser.add_argument('--topology', '-t', dest='topology' , help='topology file',t
 parser.add_argument('--trajectory', '-j', dest='traj', help='trajectory file',type=str) 
 parser.add_argument('--out', '-o', dest='out_file',default="pca", help='Output file',type=str) 
 parser.add_argument('--stride', '-dt', dest='stride' , default=1, help='Stride through trajectory skipping this many frames.',type=int) 
+parser.add_argument('--no-whiten', dest='whiten_bool', action="store_false", help='Choose whether or not to whiten coordinates. Default behaviour is to whiten the cordinates.') 
 parser.add_argument('--n-components', '-n', dest='n_components' , default = 2, help='calculate this many Principal Components of the trajectory.',type=int) 
 
 parser.add_argument('--ref', dest='reference',  help='Reference_structure, used for alignment') 
@@ -33,6 +34,7 @@ parser.add_argument('--in-mem', dest='in_mem', action="store_true", help='Do ali
 
 args = parser.parse_args()
 
+print(args.whiten_bool)
 selection_string = args.selection_string 
 
 universe = mda.Universe(args.topology,args.traj)
@@ -58,9 +60,9 @@ if args.symmetry_list != None:
     segids = list(set(selection_object.segids))
     segids_indices = selection_object.atoms.segindices
 
-    selection_object.write('/dev/shm/temp_pdb_file.pdb')
+    selection_object.write('/tmp/temp_pdb_file.pdb')
 
-    analysis_universe = mda.Universe('/dev/shm/temp_pdb_file.pdb')
+    analysis_universe = mda.Universe('/tmp/temp_pdb_file.pdb')
 
     coordinates = np.empty((len(universe.trajectory[::args.stride]) * len(args.symmetry_list), selection_object.n_atoms, 3))
 
@@ -89,14 +91,14 @@ if args.symmetry_list != None:
 #        temp_coords2 = [selection_object.select_atoms(next_symmetry).positions for ts in universe.trajectory[::args.stride]]
 
 else:
-    selection_object.write('/dev/shm/temp_pdb_file.pdb')
+    selection_object.write('/tmp/temp_pdb_file.pdb')
 
-    analysis_universe = mda.Universe('/dev/shm/temp_pdb_file.pdb')
+    analysis_universe = mda.Universe('/tmp/temp_pdb_file.pdb')
     coordinates = np.array([selection_object.positions for ts in universe.trajectory[::args.stride]])
      
 analysis_universe = analysis_universe.load_new (coordinates)
 
-with mda.Writer(('/dev/shm/analysis_universe_traj.dcd'), analysis_universe.atoms.n_atoms) as W:
+with mda.Writer(('/tmp/analysis_universe_traj.dcd'), analysis_universe.atoms.n_atoms) as W:
     for ts in analysis_universe.trajectory:
         W.write(analysis_universe.atoms)
 
@@ -104,25 +106,25 @@ if args.reference != None:
     ref_universe = mda.Universe(args.topology, args.reference)
 else:
     #ref_universe = analysis_universe.copy()
-    ref_universe = mda.Universe('/dev/shm/temp_pdb_file.pdb')
+    ref_universe = mda.Universe('/tmp/temp_pdb_file.pdb')
     ref_universe.load_new(coordinates)
 
 
 
-analysis_universe = mda.Universe('/dev/shm/temp_pdb_file.pdb')
+analysis_universe = mda.Universe('/tmp/temp_pdb_file.pdb')
 #load like this to over write first frame
-analysis_universe.load_new('/dev/shm/analysis_universe_traj.dcd')
+analysis_universe.load_new('/tmp/analysis_universe_traj.dcd')
 
 
-analysis_universe.atoms.write ('/dev/shm/analysis.pdb')
+analysis_universe.atoms.write ('/tmp/analysis.pdb')
 print('Aligning Trajectory')
 if args.in_mem==True:
     #aligner = align.AlignTraj(analysis_universe, ref_universe, in_memory=True).run(stride=args.stride)
     # we have to aligned twice for some reason.... should do the alignment not in mdanalysis i  think.
-    aligner = align.AlignTraj(analysis_universe, ref_universe, filename='/dev/shm/aligned.dcd',select=args.selection_string).run()
-    analysis_universe = analysis_universe.load_new('/dev/shm/aligned.dcd')
-    aligner = align.AlignTraj(analysis_universe, analysis_universe, filename='/dev/shm/aligned2.dcd',select = args.selection_string).run()
-    os.remove('/dev/shm/aligned.dcd')
+    aligner = align.AlignTraj(analysis_universe, ref_universe, filename='/tmp/aligned.dcd',select=args.selection_string).run()
+    analysis_universe = analysis_universe.load_new('/tmp/aligned.dcd')
+    aligner = align.AlignTraj(analysis_universe, analysis_universe, filename='/tmp/aligned2.dcd',select = args.selection_string).run()
+    os.remove('/tmp/aligned.dcd')
     analysis_universe = analysis_universe.load_new('aligned2.dcd')
 else:
     #need to fix this
@@ -142,7 +144,12 @@ analysis_universe_coordinates = analysis_universe_coordinates.reshape((analysis_
 store_mean =  np.mean(analysis_universe_coordinates,axis=0)
 store_std =  np.sqrt(np.std(analysis_universe_coordinates,axis=0))
 
-whitened_coords = (analysis_universe_coordinates - store_mean ) / store_std
+if args.whiten_bool == True:
+    print('using whitened coordinates')
+    pca_ready_coords = (analysis_universe_coordinates - store_mean ) / store_std
+else:
+    print('not using whitened coordinates')
+    pca_ready_coords = analysis_universe_coordinates
 
 #print(np.shape(analysis_universe_coordinates))
 #print(np.shape(store_mean))
@@ -157,7 +164,7 @@ print('Calculating covariance.')
 pc = PCA(n_components = args.n_components)
 #pc.fit_transform(analysis_universe_coordinates.reshape(analysis_universe.trajectory.n_frames,analysis_universe.atoms.n_atoms*3))
 #pc.fit_transform(analysis_universe_coordinates)
-pc.fit_transform(whitened_coords)
+pc.fit_transform(pca_ready_coords)
 #pc = pca.PCA(analysis_universe, n_components=args.n_components,verbose=True).run()
 
 #transformed = pc.transform(analysis_universe.atoms, args.n_components)
@@ -190,7 +197,10 @@ for i in range(args.n_components):
     #trans1 = transformed[:, 0]
 
     #projected = np.outer([dummy_coords,dummy_coords2], pc1) + pc.mean.flatten()
-    projected = (pc_traj + pc.mean_.flatten()) * 2.5  + store_mean
+    if args.whiten_bool == False:
+        projected = (pc_traj + pc.mean_.flatten())  
+    else:
+        projected = (pc_traj + pc.mean_.flatten()) + store_mean
 
     #pdb.set_trace()
 
