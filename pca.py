@@ -23,7 +23,7 @@ parser.add_argument('--topology', '-t', dest='topology' , help='topology file',t
 parser.add_argument('--trajectory', '-j', dest='traj', help='trajectory file',type=str) 
 parser.add_argument('--out', '-o', dest='out_file',default="pca", help='Output file',type=str) 
 parser.add_argument('--stride', '-dt', dest='stride' , default=1, help='Stride through trajectory skipping this many frames.',type=int) 
-parser.add_argument('--no-whiten', dest='whiten_bool', action="store_false", help='Choose whether or not to whiten coordinates. Default behaviour is to whiten the cordinates.') 
+parser.add_argument('--no-std', dest='standardise_bool', action="store_false", help='Choose whether or not to standardise coordinates. Default behaviour is to standardise the cordinates.') 
 parser.add_argument('--n-components', '-n', dest='n_components' , default = 2, help='calculate this many Principal Components of the trajectory.',type=int) 
 
 parser.add_argument('--ref', dest='reference',  help='Reference_structure, used for alignment') 
@@ -35,7 +35,7 @@ parser.add_argument('--in-mem', dest='in_mem', action="store_true", help='Do ali
 
 args = parser.parse_args()
 
-print(args.whiten_bool)
+print(args.standardise_bool)
 selection_string = args.selection_string 
 
 universe = mda.Universe(args.topology,args.traj)
@@ -124,6 +124,7 @@ analysis_universe = mda.Universe('/tmp/temp_pdb_file.pdb')
 analysis_universe.load_new('/tmp/analysis_universe_traj.dcd')
 
 
+#aligns by default
 analysis_universe.atoms.write ('/tmp/analysis.pdb')
 print('Aligning Trajectory')
 if args.in_mem==True:
@@ -158,16 +159,14 @@ dist_from_mean = np.linalg.norm(demeaned_coords,axis=2)
 print(np.shape(dist_from_mean))
 
 #np.save ('mean_molecular_structure.npy', store_mean)
-store_std =  np.sqrt(np.std(dist_from_mean,axis=0))
-print(np.shape(store_std))
 #store_std =  [num for num in store_std for _ in range(3)]
 store_std = np.sqrt(np.std(analysis_universe_coordinates,axis=0))
 
-if args.whiten_bool == True:
-    print('using whitened coordinates')
+if args.standardise_bool == True:
+    print('using standardised coordinates')
     pca_ready_coords = (analysis_universe_coordinates - store_mean ) / store_std
 else:
-    print('not using whitened coordinates')
+    print('not using standardised coordinates')
     pca_ready_coords = analysis_universe_coordinates
 
 #print(np.shape(analysis_universe_coordinates))
@@ -181,24 +180,18 @@ print('Calculating covariance.')
 
 
 pc = PCA(n_components = args.n_components)
-#pc.fit_transform(analysis_universe_coordinates.reshape(analysis_universe.trajectory.n_frames,analysis_universe.atoms.n_atoms*3))
-#pc.fit_transform(analysis_universe_coordinates)
-pc.fit_transform(pca_ready_coords)
-#pc = pca.PCA(analysis_universe, n_components=args.n_components,verbose=True).run()
-
-#transformed = pc.transform(analysis_universe.atoms, args.n_components)
-#np.save(args.out_file + '_transformed_test.npy',transformed)
 
 np.save(args.out_file + '_eigenvectors.npy', pc.components_)
 np.save(args.out_file + '_eigenvalues.npy', np.sqrt(pc.explained_variance_))
-np.save(args.out_file + '_mean.npy', (pc.mean_))
+np.save(args.out_file + '_mean.npy', store_mean)
+np.save(args.out_file + '_std.npy', store_std)
 
 mean_universe = mda.Merge(selection_object)
 
 print(np.shape(pc.mean_))
 mean_coords = np.reshape(store_mean,(analysis_universe.atoms.n_atoms,3))
 mean_universe.load_new(mean_coords, order="fac")
-mean_universe.atoms.write('mean.pdb')
+mean_universe.atoms.write(args.out_file + '_mean.pdb')
 
 #pdb.set_trace()
 print('Writing output.')
@@ -216,10 +209,10 @@ for i in range(args.n_components):
     #trans1 = transformed[:, 0]
 
     #projected = np.outer([dummy_coords,dummy_coords2], pc1) + pc.mean.flatten()
-    if args.whiten_bool == False:
+    if args.standardise_bool == False:
         projected = (pc_traj + pc.mean_.flatten())  
     else:
-        projected = (pc_traj + pc.mean_.flatten()) + store_mean
+        projected = ((pc_traj + pc.mean_.flatten()) + store_mean) 
 
     #pdb.set_trace()
 
