@@ -180,6 +180,7 @@ print('Calculating covariance.')
 
 
 pc = PCA(n_components = args.n_components)
+pc.fit(pca_ready_coords)
 
 np.save(args.out_file + '_eigenvectors.npy', pc.components_)
 np.save(args.out_file + '_eigenvalues.npy', np.sqrt(pc.explained_variance_))
