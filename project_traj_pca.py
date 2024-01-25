@@ -27,7 +27,8 @@ parser.add_argument('--stride', '-dt', dest='stride' , default=1, help='Stride t
 parser.add_argument('--no-std', dest='standardise_bool', action="store_false", help='Choose whether or not to standardise coordinates. Default behaviour is to standardise the cordinates.') 
 parser.add_argument('--n-components', '-n', dest='n_components' , default = 2, help='calculate this many Principal Components of the trajectory.',type=int) 
 
-parser.add_argument('--ref', dest='reference',  help='Reference_structure, used for alignment') 
+parser.add_argument('--ref', dest='reference',  help='Reference structure, used for alignment') 
+parser.add_argument('--ref-top', dest='ref_top',  help='Reference topology, used for alignment') 
 parser.add_argument('--symmetry-list', dest='symmetry_list',  help='List of selections which compose a single symmetry group. This script expects symmetric groups to have the same number of atoms when the selection string is applied. For example you might have 4 identical chains so you would pass the argument "--symmetry-list \'segid A\' \'segid B\' \'segid C\' \'segid D\'" to this script. The user is also warned that the groups will be treated cyclically. So in the previous example A will move to B, B to C, C to D and D to A. This will keep the relative arrangement of components so long as the user names the groups in the correct order. ',nargs="+") 
 
 parser.add_argument('--selection', '-s', dest='selection_string', help='Selection string for fitting. Will be applied to both target and reference structures.',type=str, default="name CA") 
@@ -84,9 +85,9 @@ if args.symmetry_list != None:
     segids = list(set(selection_object.segids))
     segids_indices = selection_object.atoms.segindices
 
-    selection_object.write('/tmp/temp_pdb_file.pdb')
+    selection_object.write('proj/temp_pdb_file.pdb')
 
-    analysis_universe = mda.Universe('/tmp/temp_pdb_file.pdb')
+    analysis_universe = mda.Universe('proj/temp_pdb_file.pdb')
 
     coordinates = np.empty((len(universe.trajectory[::args.stride]) * len(args.symmetry_list), selection_object.n_atoms, 3),dtype=np.float32)
 
@@ -102,50 +103,56 @@ if args.symmetry_list != None:
         coordinates[i*len(universe.trajectory[::args.stride]):(i+1)*len(universe.trajectory[::args.stride])] =  np.concatenate(temp_coords1 , axis = 1)
 
 else:
-    selection_object.write('/tmp/temp_pdb_file.pdb')
+    selection_object.write('proj/temp_pdb_file.pdb')
 
-    analysis_universe = mda.Universe('/tmp/temp_pdb_file.pdb')
+    analysis_universe = mda.Universe('proj/temp_pdb_file.pdb')
     coordinates = np.array([selection_object.positions for ts in universe.trajectory[::args.stride]])
      
 analysis_universe = analysis_universe.load_new (coordinates)
 
-with mda.Writer(('/tmp/analysis_universe_traj.dcd'), analysis_universe.atoms.n_atoms) as W:
+with mda.Writer(('proj/analysis_universe_traj.dcd'), analysis_universe.atoms.n_atoms) as W:
     for ts in analysis_universe.trajectory:
         W.write(analysis_universe.atoms)
 
 if args.reference != None: 
-    ref_universe = mda.Universe(args.topology, args.reference)
+    print('loading reference')
+    if args.ref_top != None:
+        ref_universe = mda.Universe(args.ref_top, args.reference)
+    else:
+        ref_universe = mda.Universe(args.topology, args.reference)
 else:
     #ref_universe = analysis_universe.copy()
-    ref_universe = mda.Universe('/tmp/temp_pdb_file.pdb')
+    ref_universe = mda.Universe('proj/temp_pdb_file.pdb')
     ref_universe.load_new(mean_coords)
 
 
 
-analysis_universe = mda.Universe('/tmp/temp_pdb_file.pdb')
+analysis_universe = mda.Universe('proj/temp_pdb_file.pdb')
 #load like this to over write first frame
-analysis_universe.load_new('/tmp/analysis_universe_traj.dcd')
+analysis_universe.load_new('proj/analysis_universe_traj.dcd')
 
 
 #aligns by default
-analysis_universe.atoms.write ('/tmp/analysis.pdb')
+analysis_universe.atoms.write ('proj/analysis.pdb')
 print('Aligning Trajectory')
+
 if args.in_mem==True:
+    print('in mem')
     #aligner = align.AlignTraj(analysis_universe, ref_universe, in_memory=True).run(stride=args.stride)
     # we have to aligned twice for some reason.... should do the alignment not in mdanalysis i  think.
-    aligner = align.AlignTraj(analysis_universe, ref_universe, filename='/tmp/aligned.dcd',select=args.selection_string).run()
-    analysis_universe = analysis_universe.load_new('/tmp/aligned.dcd')
-    aligner = align.AlignTraj(analysis_universe, analysis_universe, filename='/tmp/aligned2.dcd',select = args.selection_string).run()
-    os.remove('/tmp/aligned.dcd')
-    analysis_universe = analysis_universe.load_new('aligned2.dcd')
+    aligner = align.AlignTraj(analysis_universe, ref_universe, filename='proj/aligned.dcd',select=args.selection_string).run()
+    analysis_universe = analysis_universe.load_new('proj/aligned.dcd')
+    aligner = align.AlignTraj(analysis_universe, analysis_universe, filename='proj/aligned2.dcd',select = args.selection_string).run()
+    os.remove('proj/aligned.dcd')
+    analysis_universe = analysis_universe.load_new('proj/aligned2.dcd')
 else:
     #need to fix this
-    aligner = align.AlignTraj(analysis_universe, ref_universe, filename='/tmp/aligned.dcd',select = args.selection_string).run()
+    aligner = align.AlignTraj(analysis_universe, ref_universe, filename='proj/aligned.dcd',select = args.selection_string).run()
 
-    analysis_universe = analysis_universe.load_new('/tmp/aligned.dcd')
+    analysis_universe = analysis_universe.load_new('proj/aligned.dcd')
     #aligner_universe=mda.Universe(aligner,format=MemoryReader)
-    aligner = align.AlignTraj(analysis_universe, analysis_universe, filename='/tmp/aligned2.dcd',select = args.selection_string).run()
-    analysis_universe = analysis_universe.load_new('/tmp/aligned2.dcd')
+    aligner = align.AlignTraj(analysis_universe, analysis_universe, filename='proj/aligned2.dcd',select = args.selection_string).run()
+    analysis_universe = analysis_universe.load_new('proj/aligned2.dcd')
 
     #aligned_coords = AnalysisFromFunction(copy_coords, aligner_universe).run().results
 
