@@ -5,6 +5,10 @@ from MDAnalysis.analysis import pca, align
 from MDAnalysis.coordinates.memory import MemoryReader
 from MDAnalysis.analysis.base import AnalysisFromFunction
 from sklearn.decomposition import PCA
+import os 
+
+import uuid
+
 print('imported modules') 
 
 import argparse 
@@ -72,9 +76,10 @@ if args.symmetry_list != None:
     segids = list(set(selection_object.segids))
     segids_indices = selection_object.atoms.segindices
 
-    selection_object.write('pca/temp_pdb_file.pdb')
+    os.makedirs(args.out_file,exist_ok=True)
+    selection_object.write(args.out_file + '/temp_pdb_file.pdb')
 
-    analysis_universe = mda.Universe('pca/temp_pdb_file.pdb')
+    analysis_universe = mda.Universe(args.out_file + '/temp_pdb_file.pdb')
 
     coordinates = np.empty((len(universe.trajectory[::args.stride]) * len(args.symmetry_list), selection_object.n_atoms, 3),dtype=np.float32)
 
@@ -103,14 +108,15 @@ if args.symmetry_list != None:
 #        temp_coords2 = [selection_object.select_atoms(next_symmetry).positions for ts in universe.trajectory[::args.stride]]
 
 else:
-    selection_object.write('pca/temp_pdb_file.pdb')
+    os.makedirs(args.out_file,exist_ok=True)
+    selection_object.write(args.out_file + '/temp_pdb_file.pdb')
 
-    analysis_universe = mda.Universe('pca/temp_pdb_file.pdb')
+    analysis_universe = mda.Universe(args.out_file + '/temp_pdb_file.pdb')
     coordinates = np.array([selection_object.positions for ts in universe.trajectory[::args.stride]])
      
 analysis_universe = analysis_universe.load_new (coordinates)
 
-with mda.Writer(('pca/analysis_universe_traj.dcd'), analysis_universe.atoms.n_atoms) as W:
+with mda.Writer((args.out_file + '/analysis_universe_traj.dcd'), analysis_universe.atoms.n_atoms) as W:
     for ts in analysis_universe.trajectory:
         W.write(analysis_universe.atoms)
 
