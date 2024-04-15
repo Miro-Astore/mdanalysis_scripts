@@ -167,7 +167,7 @@ print(np.shape(dist_from_mean))
 
 #np.save ('mean_molecular_structure.npy', store_mean)
 #store_std =  [num for num in store_std for _ in range(3)]
-store_std = np.sqrt(np.std(analysis_universe_coordinates,axis=0))
+store_std = (np.std(analysis_universe_coordinates,axis=0))
 
 if args.standardise_bool == True:
     print('using standardised coordinates')

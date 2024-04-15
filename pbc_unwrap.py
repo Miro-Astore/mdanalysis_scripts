@@ -6,11 +6,11 @@ import sys
 if len(sys.argv) != 4:
     raise Exception('wrong number of arguments. Need 3')
 u = mda.Universe(sys.argv[1], sys.argv[2])
-prot = u.select_atoms("segid A")
+prot = u.select_atoms("protein")
 # we load another universe to define the reference
 # it uses the same input files, but this doesn't have to be always the case
 ref_u = u.copy()
-reference = ref_u.select_atoms("segid A")
+reference = ref_u.select_atoms("protein")
 ag = u.atoms
 workflow = (transformations.unwrap(ag), transformations.center_in_box(prot, center='mass'), transformations.wrap(ag, compound='fragments'))
 u.trajectory.add_transformations(*workflow)
