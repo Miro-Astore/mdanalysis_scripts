@@ -1,10 +1,17 @@
 import numpy as np
+import shutil
 
 import MDAnalysis as mda 
 from MDAnalysis.analysis import pca, align
 from MDAnalysis.coordinates.memory import MemoryReader
 from MDAnalysis.analysis.base import AnalysisFromFunction
+import uuid
+import os
 from sklearn.decomposition import PCA
+import os 
+
+import uuid
+
 print('imported modules') 
 
 import argparse 
@@ -26,7 +33,8 @@ parser.add_argument('--stride', '-dt', dest='stride' , default=1, help='Stride t
 parser.add_argument('--no-std', dest='standardise_bool', action="store_false", help='Choose whether or not to standardise coordinates. Default behaviour is to standardise the cordinates.') 
 parser.add_argument('--save-proj', dest='save_projection', action="store_true", help='Choose whether or not to standardise coordinates. Default behaviour is to standardise the cordinates.',default=False) 
 parser.add_argument('--n-components', '-n', dest='n_components' , default = 2, help='calculate this many Principal Components of the trajectory.',type=int) 
-parser.add_argument('--vis-multiply', dest='extend' , default = 1, help='multiply the eigenvectors by this magnitude for visualisation purposes.',type=int) 
+parser.add_argument('--vis-multiply', dest='extend' , default = 1, help='multiply the eigenvectors by this magnitude for visualisation purposes.',type=float) 
+parser.add_argument('--dir-root', dest='dir_root', help='Determines where the output will go. Default is to put it all into a temporary directory which is deleted after the run.') 
 
 parser.add_argument('--ref', dest='reference',  help='Reference structure, used for alignment') 
 parser.add_argument('--ref-top', dest='ref_top',  help='Reference topology, used for alignment') 
@@ -48,6 +56,13 @@ original_trajectory_n_frames = universe.trajectory.n_frames
 
 selection_object = universe.select_atoms(selection_string)
 
+if args.dir_root == None : 
+    dir_root = '/tmp/' + str(uuid.uuid4())  + '/'
+else:
+    dir_root = args.dir_root
+
+print(dir_root)
+os.makedirs(dir_root,exist_ok=True)
 
 def copy_coords(ag):
         return ag.positions.copy()
@@ -72,9 +87,9 @@ if args.symmetry_list != None:
     segids = list(set(selection_object.segids))
     segids_indices = selection_object.atoms.segindices
 
-    selection_object.write('pca/temp_pdb_file.pdb')
+    selection_object.write(dir_root + 'temp_pdb_file.pdb')
 
-    analysis_universe = mda.Universe('pca/temp_pdb_file.pdb')
+    analysis_universe = mda.Universe(dir_root + 'temp_pdb_file.pdb')
 
     coordinates = np.empty((len(universe.trajectory[::args.stride]) * len(args.symmetry_list), selection_object.n_atoms, 3),dtype=np.float32)
 
@@ -103,14 +118,14 @@ if args.symmetry_list != None:
 #        temp_coords2 = [selection_object.select_atoms(next_symmetry).positions for ts in universe.trajectory[::args.stride]]
 
 else:
-    selection_object.write('pca/temp_pdb_file.pdb')
+    selection_object.write(dir_root + 'temp_pdb_file.pdb')
 
-    analysis_universe = mda.Universe('pca/temp_pdb_file.pdb')
+    analysis_universe = mda.Universe(dir_root + 'temp_pdb_file.pdb')
     coordinates = np.array([selection_object.positions for ts in universe.trajectory[::args.stride]])
      
 analysis_universe = analysis_universe.load_new (coordinates)
 
-with mda.Writer(('pca/analysis_universe_traj.dcd'), analysis_universe.atoms.n_atoms) as W:
+with mda.Writer((dir_root + 'analysis_universe_traj.dcd'), analysis_universe.atoms.n_atoms) as W:
     for ts in analysis_universe.trajectory:
         W.write(analysis_universe.atoms)
 
@@ -121,35 +136,35 @@ if args.reference != None:
         ref_universe = mda.Universe(args.topology, args.reference)
 else:
     #ref_universe = analysis_universe.copy()
-    ref_universe = mda.Universe('pca/temp_pdb_file.pdb')
+    ref_universe = mda.Universe(dir_root + 'temp_pdb_file.pdb')
     ref_universe.load_new(coordinates)
 
 
 
-analysis_universe = mda.Universe('pca/temp_pdb_file.pdb')
+analysis_universe = mda.Universe(dir_root + 'temp_pdb_file.pdb')
 #load like this to over write first frame
-analysis_universe.load_new('pca/analysis_universe_traj.dcd')
+analysis_universe.load_new(dir_root + 'analysis_universe_traj.dcd')
 
 
 #aligns by default
-analysis_universe.atoms.write ('pca/analysis.pdb')
+analysis_universe.atoms.write (dir_root + 'analysis.pdb')
 print('Aligning Trajectory')
 if args.in_mem==True:
     #aligner = align.AlignTraj(analysis_universe, ref_universe, in_memory=True).run(stride=args.stride)
     # we have to aligned twice for some reason.... should do the alignment not in mdanalysis i  think.
-    aligner = align.AlignTraj(analysis_universe, ref_universe, filename='pca/aligned.dcd',select=args.selection_string).run()
-    analysis_universe = analysis_universe.load_new('pca/aligned.dcd')
-    aligner = align.AlignTraj(analysis_universe, analysis_universe, filename='pca/aligned2.dcd',select = args.selection_string).run()
-    os.remove('pca/aligned.dcd')
-    analysis_universe = analysis_universe.load_new('pca/aligned2.dcd')
+    aligner = align.AlignTraj(analysis_universe, ref_universe, filename=dir_root + 'aligned.dcd',select=args.selection_string,verbose=True).run()
+    analysis_universe = analysis_universe.load_new(dir_root + 'aligned.dcd')
+    aligner = align.AlignTraj(analysis_universe, analysis_universe, filename=dir_root + 'aligned2.dcd',select = args.selection_string,verbose=True).run()
+    os.remove(dir_root + 'aligned.dcd')
+    analysis_universe = analysis_universe.load_new(dir_root + 'aligned2.dcd')
 else:
     #need to fix this
-    aligner = align.AlignTraj(analysis_universe, ref_universe, filename='pca/aligned.dcd',select = args.selection_string).run()
+    aligner = align.AlignTraj(analysis_universe, ref_universe, filename=dir_root + 'aligned.dcd',select = args.selection_string,verbose=True).run()
 
-    analysis_universe = analysis_universe.load_new('pca/aligned.dcd')
+    analysis_universe = analysis_universe.load_new(dir_root + 'aligned.dcd')
     #aligner_universe=mda.Universe(aligner,format=MemoryReader)
-    aligner = align.AlignTraj(analysis_universe, analysis_universe, filename='pca/aligned2.dcd',select = args.selection_string).run()
-    analysis_universe = analysis_universe.load_new('pca/aligned2.dcd')
+    aligner = align.AlignTraj(analysis_universe, analysis_universe, filename=dir_root + 'aligned2.dcd',select = args.selection_string,verbose=True).run()
+    analysis_universe = analysis_universe.load_new(dir_root + 'aligned2.dcd')
 
     #aligned_coords = AnalysisFromFunction(copy_coords, aligner_universe).run().results
 
@@ -193,6 +208,7 @@ np.save(args.out_file + '_eigenvectors.npy', pc.components_)
 np.save(args.out_file + '_eigenvalues.npy', np.sqrt(pc.explained_variance_))
 np.save(args.out_file + '_mean.npy', store_mean)
 np.save(args.out_file + '_std.npy', store_std)
+
 if args.save_projection == True:
     #np.save(args.out_file + '_projected_traj.npy', pc.transform(pca_ready_coords[:original_trajectory_n_frames,:]))
     np.save(args.out_file + '_projected_traj.npy', pc.transform(pca_ready_coords))
@@ -240,3 +256,6 @@ for i in range(args.n_components):
     with mda.Writer((args.out_file + str(i) + '.xtc'), new_sel_object.n_atoms) as W:
         for ts in proj1.trajectory:
             W.write(new_sel_object)
+if args.dir_root == None : 
+    #shutil.rmtree(dir_root)
+    pass
