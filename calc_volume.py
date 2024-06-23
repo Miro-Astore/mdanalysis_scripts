@@ -15,7 +15,8 @@ import matplotlib.pyplot as plt
 parser = argparse.ArgumentParser()
 parser.add_argument ('--topology',type=str) 
 parser.add_argument ('--trajectory',type=str) 
-parser.add_argument ('--spacing',type=float) 
+parser.add_argument ('--stride',type=int) 
+parser.add_argument ('--spacing',default=0.3,type=float) 
 parser.add_argument ('--n_batches',default = 10000,type=int) 
 parser.add_argument ('--selection',default = 'all',type=str) 
 parser.add_argument ('-o',type=str) 
@@ -24,7 +25,7 @@ args = parser.parse_args()
 u = mda.Universe(args.topology, args.trajectory)
 
 selected_atoms = u.select_atoms(args.selection)
-volumes = np.zeros(u.trajectory.n_frames)
+volumes = np.zeros(len(range(u.trajectory.n_frames)[::args.stride]))
 # Calculate grid dimensions
 
 
@@ -36,17 +37,10 @@ max_atom_radius  = jnp.amax(radius_array)
 
 @jax.jit
 def calc_dist (grid_point, atom_positions,radius_array):
-    
     tiled_array = jnp.array(jnp.tile(grid_point,(len(atom_positions),1)))
     distance_array = jnp.linalg.norm(atom_positions-tiled_array,axis=1)
     value = jnp.any(jnp.less(distance_array,radius_array))
     return value
-
-    #value = jnp.any(jnp.less(distance_array,  radius_array))
-
-
-    
-
 
 #def calculate_volume(atoms_positions, radius):
 
