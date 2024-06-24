@@ -40,7 +40,7 @@ R = MDAnalysis.analysis.rms.RMSD(u,r,select=args.reference_selection, groupselec
 R.run()
 
 header_str = 'time, '
-for i in range(0,len(args.selection_strings),2):
-    header_str = header_str + '\"' + str(args.selection_strings[i]) +  '\"-\"' + str(args.selection_strings[i+1]) + '\", '
+for i in range(0,len(args.selection_list)):
+    header_str = header_str + '\"' + str(args.selection_list[i]) +  '\"'
 header_str = header_str [:-2]
 np.savetxt(args.o, R.rmsd,header=header_str)
