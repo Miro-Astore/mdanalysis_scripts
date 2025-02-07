@@ -87,9 +87,9 @@ if args.symmetry_list != None:
     segids = list(set(selection_object.segids))
     segids_indices = selection_object.atoms.segindices
 
-    selection_object.write(dir_root + 'temp_pdb_file.pdb')
+    selection_object.write(os.path.join(dir_root, 'temp_pdb_file.pdb'))
 
-    analysis_universe = mda.Universe(dir_root + 'temp_pdb_file.pdb')
+    analysis_universe = mda.Universe(os.path.join(dir_root, 'temp_pdb_file.pdb'))
 
     coordinates = np.empty((len(universe.trajectory[::args.stride]) * len(args.symmetry_list), selection_object.n_atoms, 3),dtype=np.float32)
 
@@ -118,14 +118,14 @@ if args.symmetry_list != None:
 #        temp_coords2 = [selection_object.select_atoms(next_symmetry).positions for ts in universe.trajectory[::args.stride]]
 
 else:
-    selection_object.write(dir_root + 'temp_pdb_file.pdb')
+    selection_object.write(os.path.join(dir_root, 'temp_pdb_file.pdb'))
 
-    analysis_universe = mda.Universe(dir_root + 'temp_pdb_file.pdb')
+    analysis_universe = mda.Universe(os.path.join(dir_root, 'temp_pdb_file.pdb'))
     coordinates = np.array([selection_object.positions for ts in universe.trajectory[::args.stride]])
      
 analysis_universe = analysis_universe.load_new (coordinates)
 
-with mda.Writer((dir_root + 'analysis_universe_traj.dcd'), analysis_universe.atoms.n_atoms) as W:
+with mda.Writer((os.path.join(dir_root, 'analysis_universe_traj.dcd')), analysis_universe.atoms.n_atoms) as W:
     for ts in analysis_universe.trajectory:
         W.write(analysis_universe.atoms)
 
@@ -136,35 +136,35 @@ if args.reference != None:
         ref_universe = mda.Universe(args.topology, args.reference)
 else:
     #ref_universe = analysis_universe.copy()
-    ref_universe = mda.Universe(dir_root + 'temp_pdb_file.pdb')
+    ref_universe = mda.Universe(os.path.join(dir_root, 'temp_pdb_file.pdb'))
     ref_universe.load_new(coordinates)
 
 
 
-analysis_universe = mda.Universe(dir_root + 'temp_pdb_file.pdb')
+analysis_universe = mda.Universe(os.path.join(dir_root, 'temp_pdb_file.pdb'))
 #load like this to over write first frame
-analysis_universe.load_new(dir_root + 'analysis_universe_traj.dcd')
+analysis_universe.load_new(os.path.join(dir_root, 'analysis_universe_traj.dcd'))
 
 
 #aligns by default
-analysis_universe.atoms.write (dir_root + 'analysis.pdb')
+analysis_universe.atoms.write (os.path.join(dir_root, 'analysis.pdb'))
 print('Aligning Trajectory')
 if args.in_mem==True:
     #aligner = align.AlignTraj(analysis_universe, ref_universe, in_memory=True).run(stride=args.stride)
     # we have to aligned twice for some reason.... should do the alignment not in mdanalysis i  think.
-    aligner = align.AlignTraj(analysis_universe, ref_universe, filename=dir_root + 'aligned.dcd',select=args.selection_string,verbose=True).run()
-    analysis_universe = analysis_universe.load_new(dir_root + 'aligned.dcd')
-    aligner = align.AlignTraj(analysis_universe, analysis_universe, filename=dir_root + 'aligned2.dcd',select = args.selection_string,verbose=True).run()
-    os.remove(dir_root + 'aligned.dcd')
-    analysis_universe = analysis_universe.load_new(dir_root + 'aligned2.dcd')
+    aligner = align.AlignTraj(analysis_universe, ref_universe, filename=os.path.join(dir_root, 'aligned.dcd'),select=args.selection_string,verbose=True).run()
+    analysis_universe = analysis_universe.load_new(os.path.join(dir_root, 'aligned.dcd'))
+    aligner = align.AlignTraj(analysis_universe, analysis_universe, filename=os.path.join(dir_root, 'aligned2.dcd'),select = args.selection_string,verbose=True).run()
+    os.remove(os.path.join(dir_root, 'aligned.dcd'))
+    analysis_universe = analysis_universe.load_new(os.path.join(dir_root, 'aligned2.dcd'))
 else:
     #need to fix this
-    aligner = align.AlignTraj(analysis_universe, ref_universe, filename=dir_root + 'aligned.dcd',select = args.selection_string,verbose=True).run()
+    aligner = align.AlignTraj(analysis_universe, ref_universe, filename=os.path.join(dir_root, 'aligned.dcd'),select = args.selection_string,verbose=True).run()
 
-    analysis_universe = analysis_universe.load_new(dir_root + 'aligned.dcd')
+    analysis_universe = analysis_universe.load_new(os.path.join(dir_root, 'aligned.dcd'))
     #aligner_universe=mda.Universe(aligner,format=MemoryReader)
-    aligner = align.AlignTraj(analysis_universe, analysis_universe, filename=dir_root + 'aligned2.dcd',select = args.selection_string,verbose=True).run()
-    analysis_universe = analysis_universe.load_new(dir_root + 'aligned2.dcd')
+    aligner = align.AlignTraj(analysis_universe, analysis_universe, filename=os.path.join(dir_root, 'aligned2.dcd'),select = args.selection_string,verbose=True).run()
+    analysis_universe = analysis_universe.load_new(os.path.join(dir_root, 'aligned2.dcd'))
 
     #aligned_coords = AnalysisFromFunction(copy_coords, aligner_universe).run().results
 
