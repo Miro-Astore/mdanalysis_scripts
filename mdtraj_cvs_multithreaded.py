@@ -46,7 +46,9 @@ def mdtraj_planarity(structure, bs_base_base_pairs_inds, ts_base_base_pairs_inds
     bs_ts_angle = np.rad2deg(np.arccos(np.dot(bs_normal_axis,ts_normal_axis))) 
     ss_bs_angle = np.rad2deg(np.arccos(np.dot(bs_normal_axis,ss_normal_axis)))
     ss_ts_angle = np.rad2deg(np.arccos(np.dot(ss_normal_axis,ts_normal_axis)))
-    return (bs_ts_angle, ss_bs_angle, ss_ts_angle)
+
+    return (str(bs_ts_angle), str(ss_bs_angle), str(ss_ts_angle))
+
 
 def mdtraj_angle(structure, bottom_stem_indices, top_stem_indices, side_stem_indices):
     bs_points_mr = structure.xyz[0][bottom_stem_indices] - np.mean(structure.xyz[0][bottom_stem_indices],axis=0)
@@ -73,13 +75,13 @@ def mdtraj_angle(structure, bottom_stem_indices, top_stem_indices, side_stem_ind
     bs_ts_angle = np.rad2deg(np.arccos(np.dot(bs_major_axis,ts_major_axis))) 
     ss_bs_angle = np.rad2deg(np.arccos(np.dot(bs_major_axis,ss_major_axis)))
     ss_ts_angle = np.rad2deg(np.arccos(np.dot(ss_major_axis,ts_major_axis)))
-    return (bs_ts_angle, ss_bs_angle, ss_ts_angle)
+    return (str(bs_ts_angle), str(ss_bs_angle), str(ss_ts_angle))
 
 def mdtraj_distance(structure, indices):
     distance = mdtraj.compute_distances(structure, [indices]) * 10  # Convert to Ångstroms
     return  distance[0][0]  # Flatten to a single value
 
-def mdtraj_cvs (filepath, fitting_indices, bs_indices, ts_indices, ss_indices, bs_base_base_inds,  ss_base_base_inds, ts_base_base_inds, distance_indices, state1, state2, bs_indices_ref, reference_inds):
+def mdtraj_cvs (filepath, fitting_indices, bs_indices, ts_indices, ss_indices, bs_base_base_inds,  ts_base_base_inds, ss_base_base_inds, distance_indices, state1, state2, bs_indices_ref, reference_inds):
     structure = mdtraj.load(filepath)
 
     rmsd_bs = mdtraj.rmsd(structure,state1,atom_indices=bs_indices, ref_atom_indices=bs_indices_ref)*10
@@ -124,24 +126,27 @@ def main():
     else:
         reference_structure = mdtraj.load(os.path.join(args.reference_structure))
 
-    state1 = mdtraj.load('/mnt/ceph/users/mastore/sla_lorena_2025/source_files/renumbered_state1_SLA.pdb')
-    state2 = mdtraj.load('/mnt/ceph/users/mastore/sla_lorena_2025/source_files/renumbered_state2_SLA.pdb')
+    state1 = mdtraj.load('renumbered_state1_SLA.pdb')
+    state2 = mdtraj.load('renumbered_state2_SLA.pdb')
+    sidechain_names_string = " name N1 C2 N3 C4 C5 C6 C5M N9 C8 N7 C5 N9 C4 N3 C2 N1 C6 N6 O2 O6" 
 
     first_structure = mdtraj.load(os.path.join(args.directory,pdb_files[0]))
     reference_inds = state1.topology.select('name P and residue 2 to 69')
 
     distance_indices = first_structure.topology.select('name C5 and (residue 65 or residue 34)')
-    bs_indices_ref =      state1.topology.select('name P and (residue 2 to 15 or residue 56 to 66)')
-    bs_indices = first_structure.topology.select('name P and (residue 2 to 15 or residue 56 to 66)')
-    bs_base_base_inds = first_structure.topology.select("(residue 15 56) and not element 'H.*'")
+    bs_indices_ref =      state1.topology.select('(residue 2 to 16 or residue 56 to 66) and ' + sidechain_names_string)
 
-    ts_base_base_inds = first_structure.topology.select("(residue 20 43) and not element 'H.*' ")
-    ss_base_base_inds = first_structure.topology.select("(residue 44 54) and not element 'H.*' ")
+    bs_indices = first_structure.topology.select('(residue 2 to 16 or residue 56 to 66) and ' + sidechain_names_string)
 
-    ss_indices = first_structure.topology.select('name P and (residue 44 to 54)')
 
-    ts_indices = first_structure.topology.select('name P and (residue 20 to 43)')
-    fitting_indices = first_structure.topology.select('residue 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34 35 36 37 38 39 40 41 42 43 44 45 46 47 51 52 53 54 55 56 57 58 59 60 61 62 63 64 65 66 67 68 69 70 and name P ')
+    bs_base_base_inds = first_structure.topology.select("(residue 16 56) and " + sidechain_names_string)
+    ts_base_base_inds = first_structure.topology.select("(residue 20 43) and  " + sidechain_names_string)
+    ss_base_base_inds = first_structure.topology.select("(residue 44 54) and " + sidechain_names_string)
+
+    ss_indices = first_structure.topology.select('(residue 44 to 54 and not residue 48 49 50) and ' + sidechain_names_string)
+
+    ts_indices = first_structure.topology.select('(residue 20 to 43 and not residue 31 32 33 34 ) and ' + sidechain_names_string )
+    fitting_indices = first_structure.topology.select('residue 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34 35 36 37 38 39 40 41 42 43 44 45 46 47 51 52 53 54 55 56 57 58 59 60 61 62 63 64 65 66 67 68 69 and name P ')
 
     if len(distance_indices) != 2:
         raise ValueError(f"Expected 2 indices, got {len(indices)}: {indices}")
